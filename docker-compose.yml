@@ -1,0 +1,42 @@
+version: '3.8'
+
+# ========================================================
+# JOIF Cloud - Stack de Portainer para Portal Central SSH
+# Compatible con ARM64 (Oracle Cloud Ampere) y x86_64
+# ========================================================
+
+services:
+  joif-portal:
+    container_name: joif-ssh-portal
+    image: joif-ssh-portal:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATA_PATH=/app/data/portal.sqlite
+      # Cambiar por contraseñas seguras para tu producción:
+      - ADMIN_PASSWORD=Admin12345!
+      - JWT_SECRET=joif_central_jwt_secret_arm_2026_super_secure
+      - CAPTCHA_SECRET=joif_antibot_math_cache_secret_2026
+    volumes:
+      - portal_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  portal_data:
+    name: joif_portal_data

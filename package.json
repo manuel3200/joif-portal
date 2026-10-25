@@ -1,0 +1,19 @@
+{
+  "name": "mivpn-central-portal",
+  "version": "1.0.0",
+  "description": "Central Multi-Server Free SSH & WebSocket VPN Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test *.test.js"
+  },
+  "keywords": ["vpn", "ssh", "websocket", "portal", "freevpn"],
+  "author": "JOIF Cloud",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  }
+}

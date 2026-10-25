@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOIF Cloud | Free SSH & WebSocket VPN</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+        }
+        .glow-effect {
+            box-shadow: 0 0 50px -10px rgba(16, 185, 129, 0.2);
+        }
+        .card-glass {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .card-glass:hover {
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        .pulse-dot {
+            animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-animation {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .4; transform: scale(1.15); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 card-glass border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-shield-halved text-white text-lg"></i>
+            </div>
+            <div>
+                <span class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300">
+                    JOIF CLOUD
+                </span>
+                <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Free SSH VPN
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button onclick="openTutorialModal()" class="text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-emerald-400"></i>
+                <span>¿Cómo Conectar?</span>
+            </button>
+            <button onclick="openAdminModal()" class="text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700/60 flex items-center gap-2">
+                <i class="fa-solid fa-gear text-slate-400"></i>
+                <span class="hidden sm:inline">Administrar</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative px-4 sm:px-8 pt-12 pb-10 text-center max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+            Cuentas Gratuitas Renovables por 2 Días
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+            Servidores <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">SSH & WebSocket</span> de Alta Velocidad
+        </h1>
+        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mb-6">
+            Crea tu cuenta de 48 horas en segundos. Cero lag para Free Fire y juegos online, optimizado para HTTP Custom y operadoras móviles.
+        </p>
+
+        <!-- Feature Pills -->
+        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-medium text-slate-300">
+            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-amber-400"></i> Zero-Latency (NoDelay)
+            </span>
+            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                <i class="fa-solid fa-network-wired text-blue-400"></i> WebSocket Puerto 80
+            </span>
+            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                <i class="fa-solid fa-gamepad text-purple-400"></i> BadVPN UDP 7300
+            </span>
+            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                <i class="fa-solid fa-infinity text-emerald-400"></i> Ancho de Banda Ilimitado
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content: Server Grid -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-16">
+        
+        <!-- Filter Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-200">
+                <i class="fa-solid fa-server text-emerald-400"></i>
+                <span>Nodos Disponibles:</span>
+                <span id="serverCountBadge" class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs">Cargando...</span>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="filterServers()" placeholder="Buscar país o servidor..." class="w-full bg-slate-800/80 border border-slate-700/80 rounded-lg pl-8 pr-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Server Grid Container -->
+        <div id="serversGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading Skeleton -->
+            <div class="col-span-full py-16 text-center text-slate-500">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400 mb-3"></i>
+                <p>Cargando servidores disponibles...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 card-glass">
+        <p>© 2026 JOIF Cloud — Todos los derechos reservados. Diseñado para alta disponibilidad.</p>
+    </footer>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 1: CREAR CUENTA                                    -->
+    <!-- ======================================================== -->
+    <div id="createModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="card-glass w-full max-w-md rounded-2xl p-6 border border-slate-700/80 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeCreateModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <span id="modalServerFlag" class="text-3xl">🇺🇸</span>
+                <div>
+                    <h3 id="modalServerName" class="font-bold text-white text-lg">USA Premium #1</h3>
+                    <p id="modalServerDomain" class="text-xs text-emerald-400 font-mono">usa.joif.net</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/60 rounded-xl p-3 border border-slate-700/50 mb-5 flex items-center justify-between text-xs">
+                <span class="text-slate-400"><i class="fa-regular fa-clock mr-1"></i> Duración de Cuenta:</span>
+                <span class="font-bold text-emerald-400">2 Días (Gratis)</span>
+            </div>
+
+            <form id="createForm" onsubmit="submitCreateAccount(event)" class="space-y-4">
+                <input type="hidden" id="selectedServerId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nombre de Usuario</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="formUsername" required pattern="[a-zA-Z0-9]{3,12}" placeholder="Ej: pedro123" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1">3 a 12 caracteres (solo letras y números).</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Contraseña</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="formPassword" required minlength="4" maxlength="20" placeholder="Ej: clave456" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg pl-9 pr-20 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <button type="button" onclick="generateRandomPass()" class="absolute right-2 top-2 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                            Azar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Anti-Bot Math Captcha -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center justify-between">
+                        <span>Verificación Anti-Bot</span>
+                        <button type="button" onclick="loadCaptcha()" class="text-emerald-400 text-[11px] hover:underline">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Cambiar
+                        </button>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div id="captchaQuestion" class="bg-slate-900/90 border border-slate-700 rounded-lg px-4 py-2 text-sm font-bold text-amber-400 min-w-[120px] text-center">
+                            Cargando...
+                        </div>
+                        <input type="number" id="formCaptchaAnswer" required placeholder="Tu respuesta" class="flex-1 bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <input type="hidden" id="formCaptchaToken">
+                </div>
+
+                <div id="createErrorMsg" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-lg"></div>
+
+                <button type="submit" id="submitBtn" class="w-full py-2.5 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <span id="submitBtnText">Crear Cuenta Ahora</span>
+                    <i id="submitSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 2: TICKET DE CUENTA CREADA                         -->
+    <!-- ======================================================== -->
+    <div id="ticketModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="card-glass w-full max-w-lg rounded-2xl p-6 border border-emerald-500/40 shadow-2xl relative animate-in zoom-in duration-200">
+            
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-white">¡Cuenta SSH Creada con Éxito!</h3>
+                <p id="ticketExpiryText" class="text-xs text-emerald-400 mt-1 font-medium">Válida por 2 Días</p>
+            </div>
+
+            <!-- Credentials Box -->
+            <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-800 space-y-2.5 text-xs mb-4">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Servidor / Host:</span>
+                    <div class="flex items-center gap-2">
+                        <span id="ticketHost" class="font-mono font-bold text-white">usa.joif.net</span>
+                        <button onclick="copyText('ticketHost')" class="text-slate-400 hover:text-emerald-400"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Usuario SSH:</span>
+                    <div class="flex items-center gap-2">
+                        <span id="ticketUser" class="font-mono font-bold text-emerald-400">usuario</span>
+                        <button onclick="copyText('ticketUser')" class="text-slate-400 hover:text-emerald-400"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Contraseña:</span>
+                    <div class="flex items-center gap-2">
+                        <span id="ticketPass" class="font-mono font-bold text-emerald-400">clave</span>
+                        <button onclick="copyText('ticketPass')" class="text-slate-400 hover:text-emerald-400"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Puertos:</span>
+                    <span class="font-mono text-slate-300">SSH: 22 | WS: 80 | UDP: 7300</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-5">
+                <button onclick="copyAllDetails()" class="flex-1 py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-copy"></i> Copiar Credenciales
+                </button>
+                <button onclick="closeTicketModal()" class="py-3 px-5 rounded-xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 3: TUTORIAL / GUÍA                                 -->
+    <!-- ======================================================== -->
+    <div id="tutorialModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="card-glass w-full max-w-lg rounded-2xl p-6 border border-slate-700/80 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeTutorialModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question text-emerald-400"></i> ¿Cómo configurar HTTP Custom?
+            </h3>
+            <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <span class="font-bold text-white block mb-1">1. Casilla Host:puerto SSH</span>
+                    <p>Pon el host de tu servidor y el puerto 80 del WebSocket. Ejemplo: <code class="text-emerald-400">usa.joif.net:80</code></p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <span class="font-bold text-white block mb-1">2. Casilla Proxy Remoto</span>
+                    <p class="text-amber-400 font-semibold">¡Déjala completamente VACÍA! (No agregues nada en proxy remoto).</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <span class="font-bold text-white block mb-1">3. Casilla Payload</span>
+                    <p>Ingresa tu payload habitual con el bug de tu operadora (apuntando al host del servidor en el encabezado <code class="text-emerald-400">Host:</code> de WebSocket).</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <span class="font-bold text-white block mb-1">4. Usuario y Contraseña</span>
+                    <p>Ingresa el usuario y la clave que acabas de crear. ¡Y dale a CONECTAR!</p>
+                </div>
+            </div>
+            <button onclick="closeTutorialModal()" class="mt-5 w-full py-2.5 rounded-xl bg-emerald-500 font-bold text-white hover:bg-emerald-600 transition text-xs">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 4: PANEL ADMIN                                     -->
+    <!-- ======================================================== -->
+    <div id="adminModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="card-glass w-full max-w-2xl rounded-2xl p-6 border border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAdminModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Admin Login View -->
+            <div id="adminLoginView">
+                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-amber-400"></i> Acceso de Administrador
+                </h3>
+                <p class="text-xs text-slate-400 mb-4">Ingresa la contraseña maestra para gestionar los nodos Edge.</p>
+                <form onsubmit="adminLogin(event)" class="space-y-4">
+                    <input type="password" id="adminPassInput" required placeholder="Contraseña de Administrador" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    <div id="adminLoginError" class="hidden text-xs text-rose-400"></div>
+                    <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 font-bold text-white rounded-xl text-sm transition">
+                        Ingresar al Panel
+                    </button>
+                </form>
+            </div>
+
+            <!-- Admin Dashboard View -->
+            <div id="adminDashboardView" class="hidden space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Gestión de Servidores</h3>
+                        <p class="text-xs text-slate-400">Agrega o administra tus nodos VPS.</p>
+                    </div>
+                    <button onclick="openAddServerModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Agregar VPS
+                    </button>
+                </div>
+
+                <div id="adminServersList" class="space-y-3">
+                    <p class="text-xs text-slate-400">Cargando servidores...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Client Logic -->
+    <script>
+        let allServers = [];
+        let adminToken = localStorage.getItem('mivpn_admin_token') || '';
+
+        // Cargar servidores al inicio
+        document.addEventListener('DOMContentLoaded', () => {
+            loadServers();
+        });
+
+        async function loadServers() {
+            try {
+                const res = await fetch('/api/public/servers');
+                const data = await res.json();
+                if (data.success) {
+                    allServers = data.servers;
+                    renderServers(allServers);
+                }
+            } catch (err) {
+                document.getElementById('serversGrid').innerHTML = `
+                    <div class="col-span-full py-12 text-center text-rose-400">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
+                        <p>No se pudo conectar con el portal. Intenta recargar la página.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderServers(servers) {
+            const grid = document.getElementById('serversGrid');
+            document.getElementById('serverCountBadge').innerText = `${servers.length} Servidores`;
+
+            if (servers.length === 0) {
+                grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500">No hay servidores disponibles.</div>';
+                return;
+            }
+
+            grid.innerHTML = servers.map(s => {
+                const percent = Math.min(100, Math.round((s.accounts_today / s.daily_limit) * 100));
+                const isFull = s.slots_remaining <= 0;
+
+                return `
+                    <div class="card-glass rounded-2xl p-5 flex flex-col justify-between transition-all duration-300">
+                        <div>
+                            <!-- Header de tarjeta -->
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-3xl">${s.flag || '🌐'}</span>
+                                    <div>
+                                        <h3 class="font-bold text-white text-base leading-snug">${s.name}</h3>
+                                        <span class="text-xs text-slate-400">${s.country_name}</span>
+                                    </div>
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot"></span> Online
+                                </span>
+                            </div>
+
+                            <!-- Host & Ports info -->
+                            <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-800/80 mb-4 space-y-1.5 text-xs font-mono">
+                                <div class="flex justify-between text-slate-300">
+                                    <span class="text-slate-500">Host:</span>
+                                    <span class="text-emerald-400 font-bold">${s.domain}</span>
+                                </div>
+                                <div class="flex justify-between text-slate-300">
+                                    <span class="text-slate-500">Puertos:</span>
+                                    <span>WS: ${s.ports.proxy} | SSH: ${s.ports.ssh} | UDP: ${s.ports.udpgw}</span>
+                                </div>
+                            </div>
+
+                            <!-- Barra de Cupos Diarios -->
+                            <div class="mb-4">
+                                <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                                    <span>Cupos de hoy:</span>
+                                    <span class="${isFull ? 'text-rose-400 font-bold' : 'text-slate-300'}">${s.accounts_today}/${s.daily_limit} (${s.slots_remaining} disp.)</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Crear Cuenta -->
+                        <button onclick="openCreateModal('${s.id}')" ${isFull ? 'disabled' : ''} class="w-full py-2.5 px-4 rounded-xl font-bold text-xs ${isFull ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2'}">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>${isFull ? 'Cupos Agotados por Hoy' : 'Crear Cuenta (2 Días)'}</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterServers() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allServers.filter(s => 
+                s.name.toLowerCase().includes(query) || 
+                s.country_name.toLowerCase().includes(query) ||
+                s.domain.toLowerCase().includes(query)
+            );
+            renderServers(filtered);
+        }
+
+        // Modal de Crear Cuenta
+        function openCreateModal(serverId) {
+            const server = allServers.find(s => s.id === serverId);
+            if (!server) return;
+
+            document.getElementById('selectedServerId').value = server.id;
+            document.getElementById('modalServerFlag').innerText = server.flag || '🌐';
+            document.getElementById('modalServerName').innerText = server.name;
+            document.getElementById('modalServerDomain').innerText = server.domain;
+            document.getElementById('formUsername').value = '';
+            document.getElementById('formPassword').value = '';
+            document.getElementById('formCaptchaAnswer').value = '';
+            document.getElementById('createErrorMsg').classList.add('hidden');
+
+            loadCaptcha();
+            document.getElementById('createModal').classList.remove('hidden');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.add('hidden');
+        }
+
+        let currentCaptcha = { challengeId: '', expiresAt: 0, signature: '', token: '' };
+
+        async function loadCaptcha() {
+            const qBox = document.getElementById('captchaQuestion');
+            qBox.innerText = '...';
+            try {
+                const res = await fetch('/api/public/captcha');
+                const data = await res.json();
+                qBox.innerText = data.question;
+                currentCaptcha = {
+                    challengeId: data.challengeId || '',
+                    expiresAt: data.expiresAt || 0,
+                    signature: data.signature || data.token || '',
+                    token: data.token || data.signature || ''
+                };
+                document.getElementById('formCaptchaToken').value = currentCaptcha.token;
+            } catch {
+                qBox.innerText = '¿Cuánto es 3 + 2?';
+            }
+        }
+
+        function generateRandomPass() {
+            const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+            let pass = '';
+            for (let i = 0; i < 7; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('formPassword').value = pass;
+        }
+
+        async function submitCreateAccount(e) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('createErrorMsg');
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitBtnText');
+            const spinner = document.getElementById('submitSpinner');
+
+            errorDiv.classList.add('hidden');
+            submitBtn.disabled = true;
+            submitText.innerText = 'Conectando con el Servidor...';
+            spinner.classList.remove('hidden');
+
+            const payload = {
+                serverId: document.getElementById('selectedServerId').value,
+                username: document.getElementById('formUsername').value.trim(),
+                password: document.getElementById('formPassword').value.trim(),
+                captchaAnswer: document.getElementById('formCaptchaAnswer').value.trim(),
+                challengeId: currentCaptcha.challengeId,
+                expiresAt: currentCaptcha.expiresAt,
+                signature: currentCaptcha.signature,
+                captchaToken: currentCaptcha.token
+            };
+
+            try {
+                const res = await fetch('/api/public/create-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || 'Ocurrió un error creando la cuenta.');
+                }
+
+                // Éxito: cerrar modal de creación y abrir ticket
+                closeCreateModal();
+                showTicket(data);
+                loadServers(); // Recargar cupos
+
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.classList.remove('hidden');
+                loadCaptcha();
+            } finally {
+                submitBtn.disabled = false;
+                submitText.innerText = 'Crear Cuenta Ahora';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function showTicket(data) {
+            const expiry = new Date(data.account.expires_at).toLocaleString();
+            document.getElementById('ticketExpiryText').innerText = `Válida por ${data.account.duration_days} Días (Vence: ${expiry})`;
+            document.getElementById('ticketHost').innerText = data.server.domain;
+            document.getElementById('ticketUser').innerText = data.account.username;
+            document.getElementById('ticketPass').innerText = data.account.password;
+
+            document.getElementById('ticketModal').classList.remove('hidden');
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticketModal').classList.add('hidden');
+        }
+
+        function copyText(elemId) {
+            const text = document.getElementById(elemId).innerText;
+            navigator.clipboard.writeText(text);
+            alert('¡Copiado al portapapeles!');
+        }
+
+        function copyAllDetails() {
+            const host = document.getElementById('ticketHost').innerText;
+            const user = document.getElementById('ticketUser').innerText;
+            const pass = document.getElementById('ticketPass').innerText;
+
+            const all = `[ JOIF CLOUD - CUENTA SSH (2 DÍAS) ]\nHost / Servidor: ${host}\nPuerto SSH: 22\nPuerto WebSocket: 80\nPuerto UDPGW: 7300\nUsuario: ${user}\nContraseña: ${pass}\nDuración: 2 Días`;
+            navigator.clipboard.writeText(all);
+            alert('¡Credenciales copiadas al portapapeles!');
+        }
+
+        // Modales Secundarios
+        function openTutorialModal() { document.getElementById('tutorialModal').classList.remove('hidden'); }
+        function closeTutorialModal() { document.getElementById('tutorialModal').classList.add('hidden'); }
+        function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
+
+        async function adminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('adminPassInput').value;
+            const errDiv = document.getElementById('adminLoginError');
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pass })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                adminToken = data.token;
+                localStorage.setItem('mivpn_admin_token', adminToken);
+                document.getElementById('adminLoginView').classList.add('hidden');
+                document.getElementById('adminDashboardView').classList.remove('hidden');
+                loadAdminServers();
+            } catch (err) {
+                errDiv.innerText = err.message;
+                errDiv.classList.remove('hidden');
+            }
+        }
+
+        async function loadAdminServers() {
+            const list = document.getElementById('adminServersList');
+            try {
+                const res = await fetch('/api/admin/servers', {
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                list.innerHTML = data.servers.map(s => `
+                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                        <div>
+                            <span class="font-bold text-white">${s.flag} ${s.name}</span>
+                            <span class="text-slate-400 block">${s.domain} (${s.ip}) — API: ${s.api_url}</span>
+                            <span class="text-emerald-400">${s.today_accounts || 0} cuentas hoy / Límite: ${s.daily_limit}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="pingServer('${s.id}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Ping</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerText = 'Error cargando servidores admin: ' + err.message;
+            }
+        }
+
+        async function pingServer(id) {
+            try {
+                const res = await fetch(`/api/admin/servers/${id}/ping`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                alert(`Estado: ${data.online ? '🟢 ONLINE' : '🔴 OFFLINE'} (Latencia: ${data.latency_ms}ms)`);
+            } catch (e) {
+                alert('Error al hacer ping: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
