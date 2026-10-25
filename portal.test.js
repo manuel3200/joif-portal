@@ -276,7 +276,7 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     assert.equal(cl.flag, '🇨🇱');
   });
 
-  await t.test('7. API Reseller B2B & Generación de Token bc_live_...', async () => {
+  await t.test('7. API JOIF Reseller & Generación de Token joif_live_...', async () => {
     // 1. Obtener API Keys como Admin
     const keysRes = await fetch(`${serverHandle.url}/api/admin/api-keys`, {
       headers: { 'x-admin-password': 'Admin12345!' }
@@ -285,8 +285,8 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     const keysData = await keysRes.json();
     assert.ok(keysData.keys.length >= 1);
     const defaultKey = keysData.keys[0].key_token;
-    assert.ok(defaultKey.startsWith('bc_live_'), 'El token debe comenzar con bc_live_');
-    assert.equal(defaultKey.length, 56, 'El token debe tener 56 caracteres (bc_live_ + 48 hex)');
+    assert.ok(defaultKey.startsWith('joif_live_'), 'El token debe comenzar con joif_live_');
+    assert.equal(defaultKey.length, 58, 'El token debe tener 58 caracteres (joif_live_ + 48 hex)');
 
     // 2. Generar una nueva API Key desde el Admin
     const genRes = await fetch(`${serverHandle.url}/api/admin/api-keys`, {
@@ -299,7 +299,7 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     });
     assert.equal(genRes.status, 201);
     const genData = await genRes.json();
-    assert.ok(genData.key.key_token.startsWith('bc_live_'));
+    assert.ok(genData.key.key_token.startsWith('joif_live_'));
     const testApiToken = genData.key.key_token;
 
     // 3. Crear cuenta vía POST /api/v1/reseller/ssh/create con Bearer Token

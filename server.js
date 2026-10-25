@@ -198,7 +198,7 @@ function createApp(options = {}) {
     );
   };
 
-  // Middleware de Admin (Acepta JWT token, contraseña de admin o Token API Key bc_live_...)
+  // Middleware de Admin (Acepta JWT token, contraseña de admin o Token API Key joif_live_... / bc_live_...)
   const requireAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'] || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
@@ -218,7 +218,7 @@ function createApp(options = {}) {
     }
 
     if (token) {
-      if (token.startsWith('bc_live_') || token.startsWith('joif_live_')) {
+      if (token.startsWith('joif_live_') || token.startsWith('bc_live_')) {
         const keyRow = await database.query("SELECT id FROM api_keys WHERE key_token = ? AND is_active = 1", [token]);
         if (keyRow.rowCount > 0) {
           return next();
@@ -236,7 +236,7 @@ function createApp(options = {}) {
     return res.status(401).json({ error: 'Acceso no autorizado. Se requiere contraseña de administrador o Token API Key válido.' });
   };
 
-  // Middleware para autenticar llamadas de Reseller con Token B2B (bc_live_...)
+  // Middleware para autenticar llamadas de Reseller con Token JOIF (joif_live_...)
   const requireResellerAuth = async (req, res, next) => {
     const enabledRes = await database.query("SELECT value FROM admin_config WHERE key = 'reseller_api_enabled'");
     const isEnabled = enabledRes.rows[0]?.value !== 'false';
@@ -253,7 +253,7 @@ function createApp(options = {}) {
     }
 
     if (!token) {
-      return res.status(401).json({ error: 'Token de autorización requerido en header Authorization: Bearer ${b2bApiToken}' });
+      return res.status(401).json({ error: 'Token de autorización requerido en header Authorization: Bearer ${apiKey}' });
     }
 
     const keyRes = await database.query("SELECT * FROM api_keys WHERE key_token = ? AND is_active = 1", [token]);
@@ -715,12 +715,12 @@ function createApp(options = {}) {
     }
   });
 
-  // Generar nueva API Key (estilo bc_live_...)
+  // Generar nueva API Key (estilo joif_live_...)
   app.post('/api/admin/api-keys', requireAdmin, async (req, res) => {
     try {
       const { name, daily_limit } = req.body;
-      const keyToken = 'bc_live_' + crypto.randomBytes(24).toString('hex');
-      const keyName = name && name.trim() ? name.trim() : 'Token Reseller ' + new Date().toISOString().slice(0, 10);
+      const keyToken = 'joif_live_' + crypto.randomBytes(24).toString('hex');
+      const keyName = name && name.trim() ? name.trim() : 'Token JOIF Reseller ' + new Date().toISOString().slice(0, 10);
       const limit = Number(daily_limit) > 0 ? Number(daily_limit) : 500;
 
       const result = await database.query(`
@@ -768,7 +768,7 @@ function createApp(options = {}) {
   });
 
   // ==========================================
-  // API RESELLER B2B (INTEGRACIÓN EXTERNA)
+  // API JOIF RESELLER (INTEGRACIÓN EXTERNA)
   // ==========================================
 
   // 1. Crear cuenta SSH en un VPS asignado (POST /api/v1/reseller/ssh/create)
@@ -819,7 +819,7 @@ function createApp(options = {}) {
     await database.query(`
       INSERT INTO accounts (server_id, username, password, created_by_ip, expires_at)
       VALUES (?, ?, ?, ?, ?)
-    `, [server.id, username, password, 'API_B2B', expiresIso]);
+    `, [server.id, username, password, 'API_JOIF_RESELLER', expiresIso]);
 
     // Incrementar contador en api_keys
     await database.query(`

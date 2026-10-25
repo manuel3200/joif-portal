@@ -18,9 +18,10 @@
                             600: '#059669',
                             700: '#047857'
                         },
-                        banana: {
-                            500: '#f97316',
-                            600: '#ea580c'
+                        joif: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                            600: '#0891b2'
                         }
                     }
                 }
@@ -88,8 +89,8 @@
             border-radius: 50%;
         }
         input:checked + .slider {
-            background-color: #ea580c; /* Orange Banana Cloud */
-            border-color: #f97316;
+            background-color: #0891b2; /* JOIF Cyan */
+            border-color: #06b6d4;
         }
         input:checked + .slider:before {
             transform: translateX(22px);
@@ -207,7 +208,7 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- VISTA 2: PANEL DE ADMINISTRACIÓN (SAAS / BANANA CLOUD)   -->
+    <!-- VISTA 2: PANEL DE ADMINISTRACIÓN (SAAS / CLÚSTER JOIF)   -->
     <!-- ======================================================== -->
     <div id="adminApp" class="hidden min-h-screen flex flex-col md:flex-row bg-[#0b0f19]">
         <!-- Sidebar -->
@@ -216,12 +217,12 @@
                 <!-- Brand Header -->
                 <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 font-bold text-sm">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center text-white shadow-lg shadow-cyan-600/20 font-bold text-sm">
                             <i class="fa-solid fa-cloud"></i>
                         </div>
                         <div>
-                            <h2 class="font-bold text-white text-sm leading-tight tracking-tight">Banana Cloud</h2>
-                            <span class="text-[10px] text-orange-400 font-medium block">TIENDA ONLINE JOIF</span>
+                            <h2 class="font-bold text-white text-sm leading-tight tracking-tight">JOIF Cloud</h2>
+                            <span class="text-[10px] text-cyan-400 font-medium block">PANEL DE CONTROL</span>
                         </div>
                     </div>
                     <button onclick="showPublicView()" class="md:hidden text-slate-400 hover:text-white">
@@ -249,8 +250,8 @@
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-3 block mb-2">INTEGRACIONES</span>
                         <nav class="space-y-1">
                             <button onclick="switchAdminTab('api')" id="navTabApi" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition">
-                                <i class="fa-solid fa-code text-orange-400 w-4 text-center"></i>
-                                <span>Integración API B2B</span>
+                                <i class="fa-solid fa-code text-cyan-400 w-4 text-center"></i>
+                                <span>API JOIF Reseller</span>
                             </button>
                         </nav>
                     </div>
@@ -376,17 +377,17 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: INTEGRACIÓN API B2B (COPIA DE BANANA CLOUD) -->
+                <!-- TAB 3: API JOIF RESELLER -->
                 <div id="tabPanelApi" class="hidden space-y-6">
                     <div class="pb-2 border-b border-slate-800">
-                        <div class="flex items-center gap-2 text-orange-400 font-bold text-base mb-1">
+                        <div class="flex items-center gap-2 text-cyan-400 font-bold text-base mb-1">
                             <i class="fa-solid fa-code"></i>
-                            <span>Integración API B2B</span>
+                            <span>API JOIF Reseller</span>
                         </div>
-                        <p class="text-xs text-slate-400">Permite que revendedores, bots de Telegram o aplicaciones creen y consulten cuentas SSH automáticamente.</p>
+                        <p class="text-xs text-slate-400">Permite que revendedores, bots de Telegram o aplicaciones creen y consulten cuentas SSH automáticamente en tu clúster.</p>
                     </div>
 
-                    <!-- Toggles Box (Exact from Image 1) -->
+                    <!-- Toggles Box -->
                     <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-6">
                         <div class="flex items-center justify-between">
                             <div>
@@ -411,39 +412,39 @@
                         </div>
                     </div>
 
-                    <!-- VPS Identifiers Box (Exact from Image 1) -->
+                    <!-- VPS Identifiers Box -->
                     <div class="card-glass rounded-2xl p-6 border border-slate-800">
                         <div class="flex items-center justify-between mb-2">
                             <h4 class="text-sm font-bold text-white">Identificadores de mis VPS (vps_id)</h4>
-                            <span id="vpsIdCount" class="text-xs font-semibold text-orange-400">0 Disponibles</span>
+                            <span id="vpsIdCount" class="text-xs font-semibold text-cyan-400">0 Disponibles</span>
                         </div>
-                        <p class="text-xs text-slate-400 mb-4">Usa estos IDs en el parámetro <code class="text-orange-400 font-mono">vps_id</code> de la API para asociar las cuentas creadas a cada servidor.</p>
+                        <p class="text-xs text-slate-400 mb-4">Usa estos IDs en el parámetro <code class="text-cyan-400 font-mono">vps_id</code> de la API para asociar las cuentas creadas a cada servidor.</p>
                         <div id="vpsIdListContainer" class="flex flex-wrap gap-2">
                             <!-- Injected dynamically -->
                             <span class="text-xs text-slate-500">Cargando identificadores...</span>
                         </div>
                     </div>
 
-                    <!-- Token Box (Exact from Image 1) -->
+                    <!-- Token Box -->
                     <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-4">
                         <div class="flex items-center justify-between">
                             <h4 class="text-sm font-bold text-white">Tu Token de Acceso (API Key):</h4>
-                            <button onclick="requestNewApiKey()" class="text-xs text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1.5 transition">
+                            <button onclick="requestNewApiKey()" class="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1.5 transition">
                                 <i class="fa-solid fa-arrows-rotate"></i> Generar Nueva Key
                             </button>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="relative flex-1">
-                                <input type="text" id="primaryApiKeyInput" readonly value="Cargando token..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-emerald-400 focus:outline-none">
+                                <input type="text" id="primaryApiKeyInput" readonly value="Cargando token..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-cyan-300 focus:outline-none">
                             </div>
-                            <button onclick="copyPrimaryApiKey()" class="px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-orange-600/20">
+                            <button onclick="copyPrimaryApiKey()" class="px-5 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-cyan-600/20">
                                 <i class="fa-regular fa-copy"></i>
                                 <span>Copiar</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- API Documentation Box (Exact from Image 2) -->
+                    <!-- API Documentation Box -->
                     <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-6">
                         <h4 class="text-base font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-book text-emerald-400"></i>
@@ -462,7 +463,7 @@
                                     <i class="fa-regular fa-copy"></i> Copiar
                                 </button>
                                 <pre id="snippetCreate">curl -X POST https://sv-free.joif.net/api/v1/reseller/ssh/create \
-  -H "Authorization: Bearer ${b2bApiToken}" \
+  -H "Authorization: Bearer ${apiKey}" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "usuario_api",
@@ -487,7 +488,7 @@
                                     <i class="fa-regular fa-copy"></i> Copiar
                                 </button>
                                 <pre id="snippetInfo">curl -X GET https://sv-free.joif.net/api/v1/reseller/ssh/info/usuario_api \
-  -H "Authorization: Bearer ${b2bApiToken}"</pre>
+  -H "Authorization: Bearer ${apiKey}"</pre>
                             </div>
                         </div>
 
@@ -503,7 +504,7 @@
                                     <i class="fa-regular fa-copy"></i> Copiar
                                 </button>
                                 <pre id="snippetList">curl -X GET https://sv-free.joif.net/api/v1/reseller/ssh/list \
-  -H "Authorization: Bearer ${b2bApiToken}"</pre>
+  -H "Authorization: Bearer ${apiKey}"</pre>
                             </div>
                         </div>
 
@@ -519,7 +520,7 @@
                                     <i class="fa-regular fa-copy"></i> Copiar
                                 </button>
                                 <pre id="snippetDelete">curl -X DELETE https://sv-free.joif.net/api/v1/reseller/ssh/delete/usuario_api \
-  -H "Authorization: Bearer ${b2bApiToken}"</pre>
+  -H "Authorization: Bearer ${apiKey}"</pre>
                             </div>
                         </div>
                     </div>
@@ -1178,7 +1179,7 @@
             const headerTitles = {
                 servers: { title: "Panel de Ventas (SaaS White-Label)", sub: "Configura tu propia tienda de internet seguro en tu subdominio personalizado." },
                 accounts: { title: "Cuentas Creadas en el Clúster", sub: "Historial completo de accesos SSH y tiempos de vigencia." },
-                api: { title: "</> Integración API B2B", sub: "Configuración de Tokens para Revendedores, Bots y Clientes Externos." },
+                api: { title: "</> API JOIF Reseller", sub: "Configuración de Tokens para Revendedores, Bots y Clientes Externos." },
                 settings: { title: "Ajustes del Sistema", sub: "Contraseñas maestras, anti-bot y parámetros globales." }
             };
 
@@ -1337,7 +1338,7 @@
         }
 
         // --------------------------------------------------------
-        // 5. API RESELLER B2B & GENERACIÓN DE TOKEN (bc_live_...)
+        // 5. API JOIF RESELLER & GENERACIÓN DE TOKEN (joif_live_...)
         // --------------------------------------------------------
         async function loadApiKeysAndSettings() {
             try {
@@ -1368,7 +1369,7 @@
         }
 
         async function requestNewApiKey() {
-            if (!confirm('¿Deseas generar una nueva API Key Reseller (bc_live_...)?')) return;
+            if (!confirm('¿Deseas generar una nueva API Key Reseller (joif_live_...)?')) return;
             try {
                 const res = await fetch('/api/admin/api-keys', {
                     method: 'POST',
@@ -1376,7 +1377,7 @@
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${adminToken}`
                     },
-                    body: JSON.stringify({ name: 'Token Generado ' + new Date().toLocaleTimeString(), daily_limit: 1000 })
+                    body: JSON.stringify({ name: 'Token JOIF ' + new Date().toLocaleTimeString(), daily_limit: 1000 })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error);

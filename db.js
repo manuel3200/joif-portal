@@ -94,8 +94,8 @@ function createDatabase(options = {}) {
     // Sembrar API Key por defecto si no existe
     const keysCount = await query("SELECT COUNT(*) as count FROM api_keys");
     if (!keysCount.rows[0]?.count) {
-      const initialKey = 'bc_live_' + crypto.randomBytes(24).toString('hex');
-      await query("INSERT INTO api_keys (key_token, name) VALUES (?, 'Token Principal Reseller')", [initialKey]);
+      const initialKey = 'joif_live_' + crypto.randomBytes(24).toString('hex');
+      await query("INSERT INTO api_keys (key_token, name) VALUES (?, 'Token Principal JOIF Reseller')", [initialKey]);
     }
 
     // Sembrar configuraciones por defecto
