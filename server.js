@@ -355,7 +355,7 @@ function createApp(options = {}) {
     } catch (edgeErr) {
       console.error(`[HUB] Error al crear cuenta en nodo edge ${server.name}:`, edgeErr.message);
       return res.status(502).json({
-        error: `No se pudo conectar con el servidor ${server.name} para crear la cuenta. Intenta de nuevo en unos momentos.`
+        error: `Error al crear cuenta en ${server.name}: ${edgeErr.message}. Verifica que el servicio esté activo y la clave API coincida.`
       });
     }
 

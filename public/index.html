@@ -176,7 +176,10 @@
                     <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nombre de Usuario</label>
                     <div class="relative">
                         <i class="fa-solid fa-user absolute left-3 top-3 text-slate-500 text-xs"></i>
-                        <input type="text" id="formUsername" required pattern="[a-zA-Z0-9]{3,12}" placeholder="Ej: pedro123" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="formUsername" required pattern="[a-zA-Z0-9]{3,12}" placeholder="Ej: pedro123" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg pl-9 pr-20 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <button type="button" onclick="generateRandomUser()" class="absolute right-2 top-2 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                            Azar
+                        </button>
                     </div>
                     <p class="text-[11px] text-slate-500 mt-1">3 a 12 caracteres (solo letras y números).</p>
                 </div>
@@ -351,6 +354,95 @@
         </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- MODAL 5: AGREGAR SERVIDOR VPS (ADMIN)                    -->
+    <!-- ======================================================== -->
+    <div id="addServerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="card-glass w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAddServerModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-server text-emerald-400"></i> <span id="addServerModalTitle">Agregar Servidor VPS</span>
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Ingresa los datos de conexión del nodo VPS con el script instalado.</p>
+
+            <form id="addServerForm" onsubmit="submitAddServer(event)" class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">ID Único (ej: usa-02)</label>
+                        <input type="text" id="srvId" required placeholder="usa-02" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Bandera (Emoji)</label>
+                        <input type="text" id="srvFlag" required placeholder="🇺🇸" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Nombre Visible</label>
+                        <input type="text" id="srvName" required placeholder="USA Premium #2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">País</label>
+                        <input type="text" id="srvCountry" required placeholder="Estados Unidos" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Dominio / Host</label>
+                        <input type="text" id="srvDomain" required placeholder="usa2.joif.net" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">IP Pública</label>
+                        <input type="text" id="srvIp" required placeholder="193.122.239.15" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Puerto SSH</label>
+                        <input type="number" id="srvPortSsh" value="22" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Puerto WS</label>
+                        <input type="number" id="srvPortProxy" value="80" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Puerto UDPGW</label>
+                        <input type="number" id="srvPortUdpgw" value="7300" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">URL de API del Nodo Edge</label>
+                    <input type="text" id="srvApiUrl" required placeholder="http://193.122.239.15:3000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    <p class="text-[11px] text-slate-500 mt-0.5">La URL y puerto 3000 donde corre el servicio del VPS.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Clave API del VPS</label>
+                        <input type="text" id="srvApiSecret" value="joif2026" placeholder="joif2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Límite Cuentas/Día</label>
+                        <input type="number" id="srvLimit" value="50" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div id="addServerError" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg"></div>
+
+                <div class="flex gap-2 pt-3">
+                    <button type="button" onclick="closeAddServerModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">Cancelar</button>
+                    <button type="submit" id="saveServerBtn" class="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition">Guardar Servidor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- JS Client Logic -->
     <script>
         let allServers = [];
@@ -462,13 +554,18 @@
             document.getElementById('modalServerFlag').innerText = server.flag || '🌐';
             document.getElementById('modalServerName').innerText = server.name;
             document.getElementById('modalServerDomain').innerText = server.domain;
-            document.getElementById('formUsername').value = '';
-            document.getElementById('formPassword').value = '';
+            generateRandomUser();
+            generateRandomPass();
             document.getElementById('formCaptchaAnswer').value = '';
             document.getElementById('createErrorMsg').classList.add('hidden');
 
             loadCaptcha();
             document.getElementById('createModal').classList.remove('hidden');
+        }
+
+        function generateRandomUser() {
+            const num = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('formUsername').value = 'user' + num;
         }
 
         function closeCreateModal() {
@@ -625,19 +722,104 @@
                 if (!data.success) throw new Error(data.error);
 
                 list.innerHTML = data.servers.map(s => `
-                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs hover:border-slate-700 transition">
                         <div>
-                            <span class="font-bold text-white">${s.flag} ${s.name}</span>
-                            <span class="text-slate-400 block">${s.domain} (${s.ip}) — API: ${s.api_url}</span>
-                            <span class="text-emerald-400">${s.today_accounts || 0} cuentas hoy / Límite: ${s.daily_limit}</span>
+                            <span class="font-bold text-white text-sm">${s.flag} ${s.name}</span>
+                            <span class="text-slate-400 block mt-0.5">${s.domain} (${s.ip}) — API: <code class="text-emerald-400 font-mono">${s.api_url}</code></span>
+                            <span class="text-slate-500 block text-[11px] mt-0.5">Clave API: ${s.api_secret ? '••••••••' : '<span class="text-amber-400 font-semibold">(Sin clave)</span>'} | Cuentas hoy: ${s.today_accounts || 0} / Límite: ${s.daily_limit}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="pingServer('${s.id}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Ping</button>
+                            <button onclick="pingServer('${s.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-wifi text-[10px]"></i> Ping
+                            </button>
+                            <button onclick="deleteServer('${s.id}', '${s.name}')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-bold transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `).join('');
             } catch (err) {
                 list.innerText = 'Error cargando servidores admin: ' + err.message;
+            }
+        }
+
+        function openAddServerModal() {
+            document.getElementById('addServerForm').reset();
+            document.getElementById('srvPortSsh').value = 22;
+            document.getElementById('srvPortProxy').value = 80;
+            document.getElementById('srvPortUdpgw').value = 7300;
+            document.getElementById('srvApiSecret').value = 'joif2026';
+            document.getElementById('srvLimit').value = 50;
+            document.getElementById('addServerError').classList.add('hidden');
+            document.getElementById('addServerModal').classList.remove('hidden');
+        }
+
+        function closeAddServerModal() {
+            document.getElementById('addServerModal').classList.add('hidden');
+        }
+
+        async function submitAddServer(e) {
+            e.preventDefault();
+            const errDiv = document.getElementById('addServerError');
+            const btn = document.getElementById('saveServerBtn');
+            errDiv.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerText = 'Guardando...';
+
+            const payload = {
+                id: document.getElementById('srvId').value.trim(),
+                name: document.getElementById('srvName').value.trim(),
+                flag: document.getElementById('srvFlag').value.trim(),
+                country_name: document.getElementById('srvCountry').value.trim(),
+                domain: document.getElementById('srvDomain').value.trim(),
+                ip: document.getElementById('srvIp').value.trim(),
+                ssh_port: Number(document.getElementById('srvPortSsh').value) || 22,
+                proxy_port: Number(document.getElementById('srvPortProxy').value) || 80,
+                udpgw_port: Number(document.getElementById('srvPortUdpgw').value) || 7300,
+                api_url: document.getElementById('srvApiUrl').value.trim(),
+                api_secret: document.getElementById('srvApiSecret').value.trim(),
+                daily_limit: Number(document.getElementById('srvLimit').value) || 50
+            };
+
+            try {
+                const res = await fetch('/api/admin/servers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Error al guardar el servidor');
+
+                closeAddServerModal();
+                loadAdminServers();
+                loadServers();
+                alert('¡Servidor VPS agregado con éxito!');
+            } catch (err) {
+                errDiv.innerText = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Guardar Servidor';
+            }
+        }
+
+        async function deleteServer(id, name) {
+            if (!confirm(`¿Estás seguro de eliminar el servidor "${name}"?`)) return;
+            try {
+                const res = await fetch(`/api/admin/servers/${encodeURIComponent(id)}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                loadAdminServers();
+                loadServers();
+                alert('Servidor eliminado.');
+            } catch (err) {
+                alert('Error al eliminar: ' + err.message);
             }
         }
 
