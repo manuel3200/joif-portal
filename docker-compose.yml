@@ -3,15 +3,13 @@ version: '3.8'
 # ========================================================
 # JOIF Cloud - Stack de Portainer para Portal Central SSH
 # Compatible con ARM64 (Oracle Cloud Ampere) y x86_64
+# Imagen preconstruida para evitar errores de BuildKit en Portainer Agent
 # ========================================================
 
 services:
   joif-portal:
     container_name: joif-ssh-portal
-    image: joif-ssh-portal:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/manuel3200/joif-portal:latest
     restart: unless-stopped
     ports:
       - "3000:3000"

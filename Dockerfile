@@ -1,32 +1,20 @@
-# ========================================================
-# JOIF Cloud - Central SSH Account Portal (Multi-Arch)
-# Compatible con ARM64 (Oracle Cloud Ampere A1) y AMD64
-# ========================================================
-FROM node:20-alpine AS builder
+FROM node:20-slim
 
 WORKDIR /app
 
-# Instalar dependencias necesarias para compilar módulos nativos si se requieren
-RUN apk add --no-cache python3 make g++
+# Instalar dependencias del sistema mínimas
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm ci --omit=dev
 
-FROM node:20-alpine AS runner
+COPY . .
 
-WORKDIR /app
-
-# Dependencias mínimas de ejecución y curl/wget para healthcheck
-RUN apk add --no-cache tzdata wget \
-    && cp /usr/share/zoneinfo/America/Argentina/Buenos_Aires /etc/localtime \
-    && echo "America/Argentina/Buenos_Aires" > /etc/timezone \
-    && apk del tzdata
-
-# Crear directorio persistente para SQLite
+# Directorio para volumen persistente SQLite
 RUN mkdir -p /app/data && chown -R node:node /app
-
-COPY --from=builder /app/node_modules ./node_modules
-COPY --chown=node:node . .
 
 USER node
 
@@ -36,7 +24,6 @@ ENV NODE_ENV=production \
 
 EXPOSE 3000
 
-# Verificación de salud integrada para Portainer y Docker
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1
 
