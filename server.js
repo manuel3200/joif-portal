@@ -198,20 +198,33 @@ function createApp(options = {}) {
     );
   };
 
-  // Middleware de Admin
+  // Middleware de Admin (Acepta JWT token, contraseña de admin o Token API Key bc_live_...)
   const requireAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'] || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-    const adminPassHeader = req.headers['x-admin-password'];
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    const adminPassHeader = req.headers['x-admin-password'] || req.headers['x-api-key'];
 
     const storedPassRow = await database.query("SELECT value FROM admin_config WHERE key = 'admin_password'");
     const expectedPass = storedPassRow.rows[0]?.value || 'Admin12345!';
 
-    if (adminPassHeader && adminPassHeader === expectedPass) {
-      return next();
+    if (adminPassHeader) {
+      if (adminPassHeader === expectedPass) {
+        return next();
+      }
+      const keyRow = await database.query("SELECT id FROM api_keys WHERE key_token = ? AND is_active = 1", [adminPassHeader]);
+      if (keyRow.rowCount > 0) {
+        return next();
+      }
     }
 
     if (token) {
+      if (token.startsWith('bc_live_') || token.startsWith('joif_live_')) {
+        const keyRow = await database.query("SELECT id FROM api_keys WHERE key_token = ? AND is_active = 1", [token]);
+        if (keyRow.rowCount > 0) {
+          return next();
+        }
+      }
+
       try {
         const decoded = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
         if (decoded && decoded.role === 'admin' && decoded.exp > Date.now()) {
@@ -220,7 +233,7 @@ function createApp(options = {}) {
       } catch {}
     }
 
-    return res.status(401).json({ error: 'Acceso no autorizado como administrador.' });
+    return res.status(401).json({ error: 'Acceso no autorizado. Se requiere contraseña de administrador o Token API Key válido.' });
   };
 
   // Middleware para autenticar llamadas de Reseller con Token B2B (bc_live_...)
