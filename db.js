@@ -76,38 +76,6 @@ function createDatabase(options = {}) {
       );
     `);
 
-    // Sembrar servidor de prueba por defecto si la base es nueva
-    const existingServers = await query('SELECT COUNT(*) as count FROM servers');
-    if (existingServers.rows[0].count === 0) {
-      await query(`
-        INSERT INTO servers (
-          id, name, country_code, country_name, flag, domain, ip,
-          ssh_port, proxy_port, ssl_port, udpgw_port, api_url, api_secret,
-          payload_template, daily_limit, is_active
-        ) VALUES (
-          'usa-01',
-          'USA Premium #1',
-          'US',
-          'Estados Unidos',
-          '🇺🇸',
-          'usa.joif.net',
-          '193.122.239.14',
-          22,
-          80,
-          443,
-          7300,
-          'http://193.122.239.14:3000',
-          'joif2026',
-          'GET / HTTP/1.3[crlf]Host: rexo.personal.com.ar[crlf][crlf][crlf][split][crlf][split]GETT / HTTP/1.1[crlf]Host: usa.joif.net[crlf]Connection: Keep-Alive[crlf]Upgrade: websocket[crlf][crlf]',
-          50,
-          1
-        );
-      `);
-    }
-
-    // Auto-migración: asegurar que usa-01 tenga configurada la clave API
-    await query("UPDATE servers SET api_secret = 'joif2026' WHERE id = 'usa-01' AND (api_secret IS NULL OR api_secret = '')");
-
     // Sembrar contraseña de administrador por defecto si no existe
     const adminPass = await query("SELECT value FROM admin_config WHERE key = 'admin_password'");
     if (adminPass.rowCount === 0) {

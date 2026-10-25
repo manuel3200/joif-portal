@@ -31,6 +31,18 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
   const database = createDatabase({ dbPath });
   await database.ready;
 
+  await database.query(`
+    INSERT INTO servers (
+      id, name, country_code, country_name, flag, domain, ip,
+      ssh_port, proxy_port, ssl_port, udpgw_port, api_url, api_secret,
+      payload_template, daily_limit, is_active
+    ) VALUES (
+      'usa-01', 'USA Premium #1', 'US', 'Estados Unidos', '🇺🇸',
+      'usa.joif.net', '193.122.239.14', 22, 80, 443, 7300,
+      'http://193.122.239.14:3000', 'joif2026', '', 50, 1
+    )
+  `);
+
   // Interceptar fetch para simular el nodo Edge VPS
   const originalFetch = global.fetch;
   let mockEdgeCreatedAccounts = [];
