@@ -17,6 +17,10 @@
                             500: '#10b981',
                             600: '#059669',
                             700: '#047857'
+                        },
+                        banana: {
+                            500: '#f97316',
+                            600: '#ea580c'
                         }
                     }
                 }
@@ -51,104 +55,529 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: .4; transform: scale(1.15); }
         }
+        /* Custom Switch Slider */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            transition: .3s;
+            border-radius: 26px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ea580c; /* Orange Banana Cloud */
+            border-color: #f97316;
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
 
-    <!-- Navbar -->
-    <nav class="sticky top-0 z-40 card-glass border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <i class="fa-solid fa-shield-halved text-white text-lg"></i>
-            </div>
-            <div>
-                <span class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300">
-                    JOIF CLOUD
-                </span>
-                <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    Free SSH VPN
-                </span>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <button onclick="openTutorialModal()" class="text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2">
-                <i class="fa-solid fa-book-open text-emerald-400"></i>
-                <span>¿Cómo Conectar?</span>
-            </button>
-            <button onclick="openAdminModal()" class="text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700/60 flex items-center gap-2">
-                <i class="fa-solid fa-gear text-slate-400"></i>
-                <span class="hidden sm:inline">Administrar</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <header class="relative px-4 sm:px-8 pt-12 pb-10 text-center max-w-4xl mx-auto">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
-            Cuentas Gratuitas Renovables por 2 Días
-        </div>
-        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Servidores <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">SSH & WebSocket</span> de Alta Velocidad
-        </h1>
-        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mb-6">
-            Crea tu cuenta de 48 horas en segundos. Cero lag para Free Fire y juegos online, optimizado para HTTP Custom y operadoras móviles.
-        </p>
-
-        <!-- Feature Pills -->
-        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-medium text-slate-300">
-            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
-                <i class="fa-solid fa-bolt text-amber-400"></i> Zero-Latency (NoDelay)
-            </span>
-            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
-                <i class="fa-solid fa-network-wired text-blue-400"></i> WebSocket Puerto 80
-            </span>
-            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
-                <i class="fa-solid fa-gamepad text-purple-400"></i> BadVPN UDP 7300
-            </span>
-            <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
-                <i class="fa-solid fa-infinity text-emerald-400"></i> Ancho de Banda Ilimitado
-            </span>
-        </div>
-    </header>
-
-    <!-- Main Content: Server Grid -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-16">
-        
-        <!-- Filter Bar -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-            <div class="flex items-center gap-2 text-sm font-semibold text-slate-200">
-                <i class="fa-solid fa-server text-emerald-400"></i>
-                <span>Nodos Disponibles:</span>
-                <span id="serverCountBadge" class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs">Cargando...</span>
-            </div>
-            <div class="flex items-center gap-2 w-full sm:w-auto">
-                <div class="relative w-full sm:w-64">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
-                    <input type="text" id="searchInput" oninput="filterServers()" placeholder="Buscar país o servidor..." class="w-full bg-slate-800/80 border border-slate-700/80 rounded-lg pl-8 pr-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+    <!-- ======================================================== -->
+    <!-- VISTA 1: PORTAL PÚBLICO (PARA USUARIOS)                  -->
+    <!-- ======================================================== -->
+    <div id="publicApp" class="flex-1 flex flex-col">
+        <!-- Navbar Pública -->
+        <nav class="sticky top-0 z-40 card-glass border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-shield-halved text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300">
+                        JOIF CLOUD
+                    </span>
+                    <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Free SSH VPN
+                    </span>
                 </div>
             </div>
-        </div>
 
-        <!-- Server Grid Container -->
-        <div id="serversGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Loading Skeleton -->
-            <div class="col-span-full py-16 text-center text-slate-500">
-                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400 mb-3"></i>
-                <p>Cargando servidores disponibles...</p>
+            <div class="flex items-center gap-3">
+                <button onclick="openTutorialModal()" class="text-xs sm:text-sm font-medium px-3.5 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-emerald-400"></i>
+                    <span>¿Cómo Conectar?</span>
+                </button>
+                <button onclick="handleAdminButtonClick()" class="text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition border border-slate-700/60 flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-slate-400"></i>
+                    <span class="hidden sm:inline">Panel Admin</span>
+                </button>
             </div>
-        </div>
+        </nav>
 
-    </main>
+        <!-- Hero Section -->
+        <header class="relative px-4 sm:px-8 pt-12 pb-10 text-center max-w-4xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-4">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+                Cuentas Gratuitas Renovables por 2 Días
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+                Servidores <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">SSH & WebSocket</span> de Alta Velocidad
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mb-6">
+                Crea tu cuenta de 48 horas en segundos. Cero lag para Free Fire y juegos online, optimizado para HTTP Custom y operadoras móviles.
+            </p>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 card-glass">
-        <p>© 2026 JOIF Cloud — Todos los derechos reservados. Diseñado para alta disponibilidad.</p>
-    </footer>
+            <!-- Feature Pills -->
+            <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-medium text-slate-300">
+                <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Zero-Latency (NoDelay)
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                    <i class="fa-solid fa-network-wired text-blue-400"></i> WebSocket Puerto 80
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-purple-400"></i> BadVPN UDP 7300
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-800/70 border border-slate-700/50 flex items-center gap-2">
+                    <i class="fa-solid fa-infinity text-emerald-400"></i> Ancho de Banda Ilimitado
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Content: Server Grid -->
+        <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-16">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                <div class="flex items-center gap-2 text-sm font-semibold text-slate-200">
+                    <i class="fa-solid fa-server text-emerald-400"></i>
+                    <span>Nodos Disponibles:</span>
+                    <span id="serverCountBadge" class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-xs">Cargando...</span>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="filterServers()" placeholder="Buscar país o servidor..." class="w-full bg-slate-800/80 border border-slate-700/80 rounded-lg pl-8 pr-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Grid Container -->
+            <div id="serversGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full py-16 text-center text-slate-500">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400 mb-3"></i>
+                    <p>Cargando servidores disponibles...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 card-glass">
+            <p>© 2026 JOIF Cloud — Todos los derechos reservados. Diseñado para alta disponibilidad.</p>
+        </footer>
+    </div>
 
     <!-- ======================================================== -->
-    <!-- MODAL 1: CREAR CUENTA                                    -->
+    <!-- VISTA 2: PANEL DE ADMINISTRACIÓN (SAAS / BANANA CLOUD)   -->
+    <!-- ======================================================== -->
+    <div id="adminApp" class="hidden min-h-screen flex flex-col md:flex-row bg-[#0b0f19]">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-slate-950/90 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col justify-between shrink-0">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 font-bold text-sm">
+                            <i class="fa-solid fa-cloud"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-white text-sm leading-tight tracking-tight">Banana Cloud</h2>
+                            <span class="text-[10px] text-orange-400 font-medium block">TIENDA ONLINE JOIF</span>
+                        </div>
+                    </div>
+                    <button onclick="showPublicView()" class="md:hidden text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="p-4 space-y-6">
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-3 block mb-2">TIENDA & CLÚSTER</span>
+                        <nav class="space-y-1">
+                            <button onclick="switchAdminTab('servers')" id="navTabServers" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-slate-800/80 border border-slate-700/60 transition">
+                                <i class="fa-solid fa-server text-emerald-400 w-4 text-center"></i>
+                                <span>Inicio y Servidores</span>
+                            </button>
+                            <button onclick="switchAdminTab('accounts')" id="navTabAccounts" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition">
+                                <i class="fa-solid fa-users text-blue-400 w-4 text-center"></i>
+                                <span>Cuentas Creadas</span>
+                            </button>
+                        </nav>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-3 block mb-2">INTEGRACIONES</span>
+                        <nav class="space-y-1">
+                            <button onclick="switchAdminTab('api')" id="navTabApi" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition">
+                                <i class="fa-solid fa-code text-orange-400 w-4 text-center"></i>
+                                <span>Integración API B2B</span>
+                            </button>
+                        </nav>
+                    </div>
+
+                    <div>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-3 block mb-2">CONFIGURACIÓN</span>
+                        <nav class="space-y-1">
+                            <button onclick="switchAdminTab('settings')" id="navTabSettings" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition">
+                                <i class="fa-solid fa-sliders text-purple-400 w-4 text-center"></i>
+                                <span>Ajustes Generales</span>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom User & Exit -->
+            <div class="p-4 border-t border-slate-800/80 space-y-2">
+                <button onclick="showPublicView()" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-emerald-400"></i>
+                        Ver Portal Público
+                    </span>
+                    <i class="fa-solid fa-angle-right text-slate-600 text-[10px]"></i>
+                </button>
+                <button onclick="adminLogout()" class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Topbar -->
+            <header class="h-16 border-b border-slate-800 bg-slate-950/40 px-6 flex items-center justify-between shrink-0">
+                <div>
+                    <h1 id="adminHeaderTitle" class="text-base font-bold text-white">Panel de Ventas (SaaS White-Label)</h1>
+                    <p id="adminHeaderSubtitle" class="text-xs text-slate-400">Configura tu propia tienda de internet seguro en tu subdominio personalizado.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> thejoif
+                    </span>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Panels -->
+            <div class="p-6 max-w-6xl w-full mx-auto space-y-6">
+
+                <!-- TAB 1: INICIO Y SERVIDORES -->
+                <div id="tabPanelServers" class="space-y-6">
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="card-glass p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[11px] text-slate-400 font-semibold block mb-1">VPS ACTIVOS</span>
+                            <span id="kpiServers" class="text-2xl font-extrabold text-white">0</span>
+                        </div>
+                        <div class="card-glass p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[11px] text-slate-400 font-semibold block mb-1">CUENTAS HOY</span>
+                            <span id="kpiToday" class="text-2xl font-extrabold text-emerald-400">0</span>
+                        </div>
+                        <div class="card-glass p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[11px] text-slate-400 font-semibold block mb-1">TOTAL HISTÓRICO</span>
+                            <span id="kpiTotal" class="text-2xl font-extrabold text-white">0</span>
+                        </div>
+                        <div class="card-glass p-4 rounded-2xl border border-slate-800">
+                            <span class="text-[11px] text-slate-400 font-semibold block mb-1">API KEYS ACTIVAS</span>
+                            <span id="kpiKeys" class="text-2xl font-extrabold text-orange-400">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Servers Section Header -->
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Servidores VPS Conectados</h3>
+                            <p class="text-xs text-slate-400">Gestión remota de nodos edge SSH/WebSocket.</p>
+                        </div>
+                        <button onclick="openAddServerModal()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Agregar VPS</span>
+                        </button>
+                    </div>
+
+                    <!-- Server List -->
+                    <div id="adminServersList" class="space-y-3">
+                        <p class="text-xs text-slate-400 py-4">Cargando servidores...</p>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CUENTAS CREADAS -->
+                <div id="tabPanelAccounts" class="hidden space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Historial de Cuentas SSH</h3>
+                            <p class="text-xs text-slate-400">Cuentas generadas vía web pública o API Reseller.</p>
+                        </div>
+                        <div class="relative w-full sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                            <input type="text" id="accountSearchInput" oninput="filterAccountsTable()" placeholder="Filtrar por usuario..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Accounts Table -->
+                    <div class="card-glass rounded-2xl border border-slate-800 overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900/80 text-slate-400 font-semibold border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3.5">Usuario</th>
+                                    <th class="p-3.5">Servidor</th>
+                                    <th class="p-3.5">Origen</th>
+                                    <th class="p-3.5">Creado</th>
+                                    <th class="p-3.5">Vencimiento</th>
+                                    <th class="p-3.5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAccountsTbody" class="divide-y divide-slate-800/60 font-mono">
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-slate-500">Cargando cuentas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: INTEGRACIÓN API B2B (COPIA DE BANANA CLOUD) -->
+                <div id="tabPanelApi" class="hidden space-y-6">
+                    <div class="pb-2 border-b border-slate-800">
+                        <div class="flex items-center gap-2 text-orange-400 font-bold text-base mb-1">
+                            <i class="fa-solid fa-code"></i>
+                            <span>Integración API B2B</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Permite que revendedores, bots de Telegram o aplicaciones creen y consulten cuentas SSH automáticamente.</p>
+                    </div>
+
+                    <!-- Toggles Box (Exact from Image 1) -->
+                    <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Habilitar API Reseller</h4>
+                                <p class="text-xs text-slate-400">Permitir peticiones entrantes de API</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleApiReseller" onchange="updateApiToggle('reseller_api_enabled', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-800/80">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Limitar GB por VPS</h4>
+                                <p class="text-xs text-slate-400">Aplica el límite de banda ancha de tu VPS a los usuarios creados</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleLimitGb" onchange="updateApiToggle('reseller_limit_gb', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- VPS Identifiers Box (Exact from Image 1) -->
+                    <div class="card-glass rounded-2xl p-6 border border-slate-800">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-sm font-bold text-white">Identificadores de mis VPS (vps_id)</h4>
+                            <span id="vpsIdCount" class="text-xs font-semibold text-orange-400">0 Disponibles</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4">Usa estos IDs en el parámetro <code class="text-orange-400 font-mono">vps_id</code> de la API para asociar las cuentas creadas a cada servidor.</p>
+                        <div id="vpsIdListContainer" class="flex flex-wrap gap-2">
+                            <!-- Injected dynamically -->
+                            <span class="text-xs text-slate-500">Cargando identificadores...</span>
+                        </div>
+                    </div>
+
+                    <!-- Token Box (Exact from Image 1) -->
+                    <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-bold text-white">Tu Token de Acceso (API Key):</h4>
+                            <button onclick="requestNewApiKey()" class="text-xs text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-arrows-rotate"></i> Generar Nueva Key
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" id="primaryApiKeyInput" readonly value="Cargando token..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-emerald-400 focus:outline-none">
+                            </div>
+                            <button onclick="copyPrimaryApiKey()" class="px-5 py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-orange-600/20">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Copiar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- API Documentation Box (Exact from Image 2) -->
+                    <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-6">
+                        <h4 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-book text-emerald-400"></i>
+                            Documentación Básica de la API
+                        </h4>
+
+                        <!-- Endpoint 1: Create Account -->
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-0.5 rounded font-bold text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">POST</span>
+                                <code class="text-xs sm:text-sm font-bold text-white font-mono">/api/v1/reseller/ssh/create</code>
+                            </div>
+                            <p class="text-xs text-slate-400">Crea o encola una cuenta SSH en un VPS asignado. (0 GB = Ilimitado)</p>
+                            <div class="relative bg-slate-950 rounded-xl p-4 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto">
+                                <button onclick="copySnippet('snippetCreate')" class="absolute right-3 top-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                                <pre id="snippetCreate">curl -X POST https://sv-free.joif.net/api/v1/reseller/ssh/create \
+  -H "Authorization: Bearer ${b2bApiToken}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "usuario_api",
+    "password": "mi_password_segura",
+    "connection_limit": 2,
+    "gb_limity": 1,
+    "expiration_days": 30,
+    "vps_id": "usa-01"
+  }'</pre>
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 2: Info -->
+                        <div class="space-y-2 pt-4 border-t border-slate-800/80">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-0.5 rounded font-bold text-[11px] bg-amber-500/20 text-amber-400 border border-amber-500/30">GET</span>
+                                <code class="text-xs sm:text-sm font-bold text-white font-mono">/api/v1/reseller/ssh/info/:username</code>
+                            </div>
+                            <p class="text-xs text-slate-400">Obtiene el consumo de banda ancha en tiempo real, límite y conexiones activas.</p>
+                            <div class="relative bg-slate-950 rounded-xl p-4 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto">
+                                <button onclick="copySnippet('snippetInfo')" class="absolute right-3 top-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                                <pre id="snippetInfo">curl -X GET https://sv-free.joif.net/api/v1/reseller/ssh/info/usuario_api \
+  -H "Authorization: Bearer ${b2bApiToken}"</pre>
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 3: List -->
+                        <div class="space-y-2 pt-4 border-t border-slate-800/80">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-0.5 rounded font-bold text-[11px] bg-blue-500/20 text-blue-400 border border-blue-500/30">GET</span>
+                                <code class="text-xs sm:text-sm font-bold text-white font-mono">/api/v1/reseller/ssh/list</code>
+                            </div>
+                            <p class="text-xs text-slate-400">Lista todas las cuentas SSH creadas por ti.</p>
+                            <div class="relative bg-slate-950 rounded-xl p-4 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto">
+                                <button onclick="copySnippet('snippetList')" class="absolute right-3 top-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                                <pre id="snippetList">curl -X GET https://sv-free.joif.net/api/v1/reseller/ssh/list \
+  -H "Authorization: Bearer ${b2bApiToken}"</pre>
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 4: Delete -->
+                        <div class="space-y-2 pt-4 border-t border-slate-800/80">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-0.5 rounded font-bold text-[11px] bg-rose-500/20 text-rose-400 border border-rose-500/30">DELETE</span>
+                                <code class="text-xs sm:text-sm font-bold text-white font-mono">/api/v1/reseller/ssh/delete/:username</code>
+                            </div>
+                            <p class="text-xs text-slate-400">Elimina permanentemente una cuenta de tu clúster.</p>
+                            <div class="relative bg-slate-950 rounded-xl p-4 border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto">
+                                <button onclick="copySnippet('snippetDelete')" class="absolute right-3 top-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> Copiar
+                                </button>
+                                <pre id="snippetDelete">curl -X DELETE https://sv-free.joif.net/api/v1/reseller/ssh/delete/usuario_api \
+  -H "Authorization: Bearer ${b2bApiToken}"</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: AJUSTES Y SEGURIDAD -->
+                <div id="tabPanelSettings" class="hidden space-y-6">
+                    <div class="pb-2 border-b border-slate-800">
+                        <h3 class="text-base font-bold text-white">Ajustes Generales y Seguridad</h3>
+                        <p class="text-xs text-slate-400">Configuración maestra del portal y credenciales de acceso.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Password Change Box -->
+                        <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-4">
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-key text-emerald-400"></i> Cambiar Contraseña Maestra
+                            </h4>
+                            <form onsubmit="submitChangePassword(event)" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1">Nueva Contraseña</label>
+                                    <input type="password" id="newAdminPassInput" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div id="changePassMsg" class="hidden text-xs"></div>
+                                <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 font-bold text-white rounded-xl text-xs transition">
+                                    Actualizar Contraseña
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- System Parameters Box -->
+                        <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-4">
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-clock text-blue-400"></i> Parámetros de Cuentas Gratuitas
+                            </h4>
+                            <form onsubmit="submitGlobalSettings(event)" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1">Duración de Cuentas Públicas (Días)</label>
+                                    <input type="number" id="settingDurationDays" min="1" max="30" value="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1">Título de la Web</label>
+                                    <input type="text" id="settingSiteTitle" value="JOIF Cloud" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <button type="submit" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 font-bold text-white rounded-xl text-xs transition">
+                                    Guardar Parámetros
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 1: CREAR CUENTA PÚBLICA                            -->
     <!-- ======================================================== -->
     <div id="createModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="card-glass w-full max-w-md rounded-2xl p-6 border border-slate-700/80 shadow-2xl relative animate-in fade-in zoom-in duration-200">
@@ -227,7 +656,6 @@
     <!-- ======================================================== -->
     <div id="ticketModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
         <div class="card-glass w-full max-w-lg rounded-2xl p-6 border border-emerald-500/40 shadow-2xl relative animate-in zoom-in duration-200">
-            
             <div class="text-center mb-5">
                 <div class="w-14 h-14 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
                     <i class="fa-solid fa-check"></i>
@@ -236,7 +664,6 @@
                 <p id="ticketExpiryText" class="text-xs text-emerald-400 mt-1 font-medium">Válida por 2 Días</p>
             </div>
 
-            <!-- Credentials Box -->
             <div class="bg-slate-900/90 rounded-xl p-4 border border-slate-800 space-y-2.5 text-xs mb-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-800">
                     <span class="text-slate-400">Servidor / Host:</span>
@@ -312,60 +739,42 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- MODAL 4: PANEL ADMIN                                     -->
+    <!-- MODAL 4: LOGIN DE ADMIN                                  -->
     <!-- ======================================================== -->
-    <div id="adminModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="card-glass w-full max-w-2xl rounded-2xl p-6 border border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeAdminModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
+    <div id="adminLoginModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="card-glass w-full max-w-sm rounded-2xl p-6 border border-slate-700 shadow-2xl relative animate-in zoom-in duration-200">
+            <button onclick="closeAdminLoginModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-
-            <!-- Admin Login View -->
-            <div id="adminLoginView">
-                <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-lock text-amber-400"></i> Acceso de Administrador
-                </h3>
-                <p class="text-xs text-slate-400 mb-4">Ingresa la contraseña maestra para gestionar los nodos Edge.</p>
-                <form onsubmit="adminLogin(event)" class="space-y-4">
-                    <input type="password" id="adminPassInput" required placeholder="Contraseña de Administrador" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    <div id="adminLoginError" class="hidden text-xs text-rose-400"></div>
-                    <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 font-bold text-white rounded-xl text-sm transition">
-                        Ingresar al Panel
-                    </button>
-                </form>
-            </div>
-
-            <!-- Admin Dashboard View -->
-            <div id="adminDashboardView" class="hidden space-y-6">
-                <div class="flex items-center justify-between pb-4 border-b border-slate-800">
-                    <div>
-                        <h3 class="text-lg font-bold text-white">Gestión de Servidores</h3>
-                        <p class="text-xs text-slate-400">Agrega o administra tus nodos VPS.</p>
-                    </div>
-                    <button onclick="openAddServerModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-1.5">
-                        <i class="fa-solid fa-plus"></i> Agregar VPS
-                    </button>
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-xl flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
-
-                <div id="adminServersList" class="space-y-3">
-                    <p class="text-xs text-slate-400">Cargando servidores...</p>
-                </div>
+                <h3 class="text-base font-bold text-white">Panel de Control Clúster</h3>
+                <p class="text-xs text-slate-400 mt-1">Ingresa tu contraseña maestra de administrador.</p>
             </div>
+            <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <input type="password" id="adminPasswordInput" required placeholder="Contraseña de Administrador" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                <div id="adminLoginError" class="hidden text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20"></div>
+                <button type="submit" class="w-full py-2.5 bg-orange-600 hover:bg-orange-500 font-bold text-white rounded-xl text-xs transition shadow-lg shadow-orange-600/20">
+                    Ingresar al Panel
+                </button>
+            </form>
         </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- MODAL 5: AGREGAR SERVIDOR VPS (ADMIN)                    -->
+    <!-- MODAL 5: AGREGAR SERVIDOR VPS                            -->
     <!-- ======================================================== -->
     <div id="addServerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="card-glass w-full max-w-lg rounded-2xl p-6 border border-slate-700 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeAddServerModal()" class="absolute right-4 top-4 text-slate-400 hover:text-white text-lg">
                 <i class="fa-solid fa-xmark"></i>
             </button>
-            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-server text-emerald-400"></i> <span id="addServerModalTitle">Agregar Servidor VPS</span>
+            <h3 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-server text-emerald-400"></i> Agregar Servidor VPS
             </h3>
-            <p class="text-xs text-slate-400 mb-4">Ingresa los datos de conexión del nodo VPS con el script instalado.</p>
+            <p class="text-xs text-slate-400 mb-4">Ingresa los datos del nodo VPS con el script CLI instalado.</p>
 
             <form id="addServerForm" onsubmit="submitAddServer(event)" class="space-y-3 text-xs">
                 <div class="grid grid-cols-2 gap-3">
@@ -374,7 +783,7 @@
                         <input type="text" id="srvId" required placeholder="usa-02" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-300 mb-1">Bandera (Emoji)</label>
+                        <label class="block font-semibold text-slate-300 mb-1">Bandera Emoji</label>
                         <input type="text" id="srvFlag" required placeholder="🇺🇸" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
                     </div>
                 </div>
@@ -419,7 +828,6 @@
                 <div>
                     <label class="block font-semibold text-slate-300 mb-1">URL de API del Nodo Edge</label>
                     <input type="text" id="srvApiUrl" required placeholder="http://193.122.239.15:3000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-emerald-500 focus:outline-none">
-                    <p class="text-[11px] text-slate-500 mt-0.5">La URL y puerto 3000 donde corre el servicio del VPS.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -443,16 +851,32 @@
         </div>
     </div>
 
-    <!-- JS Client Logic -->
+    <!-- ======================================================== -->
+    <!-- JAVASCRIPT LOGIC                                         -->
+    <!-- ======================================================== -->
     <script>
         let allServers = [];
+        let allAccounts = [];
+        let currentApiKeys = [];
+        let currentSettings = {};
         let adminToken = localStorage.getItem('mivpn_admin_token') || '';
 
-        // Cargar servidores al inicio
         document.addEventListener('DOMContentLoaded', () => {
             loadServers();
+
+            // Si se abre con hash #admin y ya hay token, abrir directo
+            if (window.location.hash === '#admin') {
+                if (adminToken) {
+                    showAdminView();
+                } else {
+                    openAdminLoginModal();
+                }
+            }
         });
 
+        // --------------------------------------------------------
+        // 1. CARGA PÚBLICA
+        // --------------------------------------------------------
         async function loadServers() {
             try {
                 const res = await fetch('/api/public/servers');
@@ -487,7 +911,6 @@
                 return `
                     <div class="card-glass rounded-2xl p-5 flex flex-col justify-between transition-all duration-300">
                         <div>
-                            <!-- Header de tarjeta -->
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex items-center gap-3">
                                     <span class="text-3xl">${s.flag || '🌐'}</span>
@@ -501,7 +924,6 @@
                                 </span>
                             </div>
 
-                            <!-- Host & Ports info -->
                             <div class="bg-slate-900/70 rounded-xl p-3 border border-slate-800/80 mb-4 space-y-1.5 text-xs font-mono">
                                 <div class="flex justify-between text-slate-300">
                                     <span class="text-slate-500">Host:</span>
@@ -513,7 +935,6 @@
                                 </div>
                             </div>
 
-                            <!-- Barra de Cupos Diarios -->
                             <div class="mb-4">
                                 <div class="flex justify-between text-[11px] text-slate-400 mb-1">
                                     <span>Cupos de hoy:</span>
@@ -525,7 +946,6 @@
                             </div>
                         </div>
 
-                        <!-- Botón Crear Cuenta -->
                         <button onclick="openCreateModal('${s.id}')" ${isFull ? 'disabled' : ''} class="w-full py-2.5 px-4 rounded-xl font-bold text-xs ${isFull ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2'}">
                             <i class="fa-solid fa-user-plus"></i>
                             <span>${isFull ? 'Cupos Agotados por Hoy' : 'Crear Cuenta (2 Días)'}</span>
@@ -545,7 +965,9 @@
             renderServers(filtered);
         }
 
-        // Modal de Crear Cuenta
+        // --------------------------------------------------------
+        // 2. CREACIÓN DE CUENTA PÚBLICA
+        // --------------------------------------------------------
         function openCreateModal(serverId) {
             const server = allServers.find(s => s.id === serverId);
             if (!server) return;
@@ -563,13 +985,20 @@
             document.getElementById('createModal').classList.remove('hidden');
         }
 
+        function closeCreateModal() { document.getElementById('createModal').classList.add('hidden'); }
+        function openTutorialModal() { document.getElementById('tutorialModal').classList.remove('hidden'); }
+        function closeTutorialModal() { document.getElementById('tutorialModal').classList.add('hidden'); }
+
         function generateRandomUser() {
             const num = Math.floor(1000 + Math.random() * 9000);
             document.getElementById('formUsername').value = 'user' + num;
         }
 
-        function closeCreateModal() {
-            document.getElementById('createModal').classList.add('hidden');
+        function generateRandomPass() {
+            const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+            let pass = '';
+            for (let i = 0; i < 7; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('formPassword').value = pass;
         }
 
         let currentCaptcha = { challengeId: '', expiresAt: 0, signature: '', token: '' };
@@ -591,13 +1020,6 @@
             } catch {
                 qBox.innerText = '¿Cuánto es 3 + 2?';
             }
-        }
-
-        function generateRandomPass() {
-            const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-            let pass = '';
-            for (let i = 0; i < 7; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
-            document.getElementById('formPassword').value = pass;
         }
 
         async function submitCreateAccount(e) {
@@ -631,15 +1053,11 @@
                 });
                 const data = await res.json();
 
-                if (!res.ok) {
-                    throw new Error(data.error || 'Ocurrió un error creando la cuenta.');
-                }
+                if (!res.ok) throw new Error(data.error || 'Ocurrió un error creando la cuenta.');
 
-                // Éxito: cerrar modal de creación y abrir ticket
                 closeCreateModal();
                 showTicket(data);
-                loadServers(); // Recargar cupos
-
+                loadServers();
             } catch (err) {
                 errorDiv.innerText = err.message;
                 errorDiv.classList.remove('hidden');
@@ -657,13 +1075,10 @@
             document.getElementById('ticketHost').innerText = data.server.domain;
             document.getElementById('ticketUser').innerText = data.account.username;
             document.getElementById('ticketPass').innerText = data.account.password;
-
             document.getElementById('ticketModal').classList.remove('hidden');
         }
 
-        function closeTicketModal() {
-            document.getElementById('ticketModal').classList.add('hidden');
-        }
+        function closeTicketModal() { document.getElementById('ticketModal').classList.add('hidden'); }
 
         function copyText(elemId) {
             const text = document.getElementById(elemId).innerText;
@@ -675,21 +1090,35 @@
             const host = document.getElementById('ticketHost').innerText;
             const user = document.getElementById('ticketUser').innerText;
             const pass = document.getElementById('ticketPass').innerText;
-
             const all = `[ JOIF CLOUD - CUENTA SSH (2 DÍAS) ]\nHost / Servidor: ${host}\nPuerto SSH: 22\nPuerto WebSocket: 80\nPuerto UDPGW: 7300\nUsuario: ${user}\nContraseña: ${pass}\nDuración: 2 Días`;
             navigator.clipboard.writeText(all);
             alert('¡Credenciales copiadas al portapapeles!');
         }
 
-        // Modales Secundarios
-        function openTutorialModal() { document.getElementById('tutorialModal').classList.remove('hidden'); }
-        function closeTutorialModal() { document.getElementById('tutorialModal').classList.add('hidden'); }
-        function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
-        function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
+        // --------------------------------------------------------
+        // 3. VISTAS DEL PANEL DE ADMINISTRACIÓN
+        // --------------------------------------------------------
+        function handleAdminButtonClick() {
+            if (adminToken) {
+                showAdminView();
+            } else {
+                openAdminLoginModal();
+            }
+        }
 
-        async function adminLogin(e) {
+        function openAdminLoginModal() {
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminLoginError').classList.add('hidden');
+            document.getElementById('adminLoginModal').classList.remove('hidden');
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('adminLoginModal').classList.add('hidden');
+        }
+
+        async function handleAdminLogin(e) {
             e.preventDefault();
-            const pass = document.getElementById('adminPassInput').value;
+            const pass = document.getElementById('adminPasswordInput').value;
             const errDiv = document.getElementById('adminLoginError');
 
             try {
@@ -703,17 +1132,93 @@
 
                 adminToken = data.token;
                 localStorage.setItem('mivpn_admin_token', adminToken);
-                document.getElementById('adminLoginView').classList.add('hidden');
-                document.getElementById('adminDashboardView').classList.remove('hidden');
-                loadAdminServers();
+                closeAdminLoginModal();
+                showAdminView();
             } catch (err) {
                 errDiv.innerText = err.message;
                 errDiv.classList.remove('hidden');
             }
         }
 
+        function showAdminView() {
+            document.getElementById('publicApp').classList.add('hidden');
+            document.getElementById('adminApp').classList.remove('hidden');
+            window.location.hash = 'admin';
+            switchAdminTab('servers');
+            loadAdminData();
+        }
+
+        function showPublicView() {
+            document.getElementById('adminApp').classList.add('hidden');
+            document.getElementById('publicApp').classList.remove('hidden');
+            window.location.hash = '';
+            loadServers();
+        }
+
+        function adminLogout() {
+            adminToken = '';
+            localStorage.removeItem('mivpn_admin_token');
+            showPublicView();
+        }
+
+        function switchAdminTab(tab) {
+            const tabs = ['servers', 'accounts', 'api', 'settings'];
+            tabs.forEach(t => {
+                const navBtn = document.getElementById('navTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const panel = document.getElementById('tabPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tab) {
+                    navBtn.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-slate-800/80 border border-slate-700/60 transition";
+                    panel.classList.remove('hidden');
+                } else {
+                    navBtn.className = "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-900 transition";
+                    panel.classList.add('hidden');
+                }
+            });
+
+            const headerTitles = {
+                servers: { title: "Panel de Ventas (SaaS White-Label)", sub: "Configura tu propia tienda de internet seguro en tu subdominio personalizado." },
+                accounts: { title: "Cuentas Creadas en el Clúster", sub: "Historial completo de accesos SSH y tiempos de vigencia." },
+                api: { title: "</> Integración API B2B", sub: "Configuración de Tokens para Revendedores, Bots y Clientes Externos." },
+                settings: { title: "Ajustes del Sistema", sub: "Contraseñas maestras, anti-bot y parámetros globales." }
+            };
+
+            document.getElementById('adminHeaderTitle').innerText = headerTitles[tab].title;
+            document.getElementById('adminHeaderSubtitle').innerText = headerTitles[tab].sub;
+
+            if (tab === 'accounts') loadAdminAccounts();
+            if (tab === 'api') loadApiKeysAndSettings();
+        }
+
+        // --------------------------------------------------------
+        // 4. DATOS Y ENDPOINTS DE ADMIN
+        // --------------------------------------------------------
+        async function loadAdminData() {
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentSettings = data.configs;
+                    document.getElementById('kpiServers').innerText = data.stats.total_servers;
+                    document.getElementById('kpiToday').innerText = data.stats.today_accounts;
+                    document.getElementById('kpiTotal').innerText = data.stats.total_accounts;
+                    document.getElementById('kpiKeys').innerText = data.stats.active_api_keys;
+
+                    document.getElementById('toggleApiReseller').checked = currentSettings.reseller_api_enabled !== 'false';
+                    document.getElementById('toggleLimitGb').checked = currentSettings.reseller_limit_gb !== 'false';
+                    document.getElementById('settingDurationDays').value = currentSettings.default_account_duration_days || 2;
+                    document.getElementById('settingSiteTitle').value = currentSettings.site_title || 'JOIF Cloud';
+                }
+            } catch (err) {
+                console.warn('Error cargando settings admin:', err);
+            }
+            loadAdminServers();
+        }
+
         async function loadAdminServers() {
             const list = document.getElementById('adminServersList');
+            const vpsBox = document.getElementById('vpsIdListContainer');
             try {
                 const res = await fetch('/api/admin/servers', {
                     headers: { Authorization: `Bearer ${adminToken}` }
@@ -722,27 +1227,255 @@
                 if (!data.success) throw new Error(data.error);
 
                 list.innerHTML = data.servers.map(s => `
-                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs hover:border-slate-700 transition">
+                    <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition">
                         <div>
-                            <span class="font-bold text-white text-sm">${s.flag} ${s.name}</span>
-                            <span class="text-slate-400 block mt-0.5">${s.domain} (${s.ip}) — API: <code class="text-emerald-400 font-mono">${s.api_url}</code></span>
-                            <span class="text-slate-500 block text-[11px] mt-0.5">Clave API: ${s.api_secret ? '••••••••' : '<span class="text-amber-400 font-semibold">(Sin clave)</span>'} | Cuentas hoy: ${s.today_accounts || 0} / Límite: ${s.daily_limit}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">${s.flag}</span>
+                                <span class="font-bold text-white text-sm">${s.name}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">ID: ${s.id}</span>
+                            </div>
+                            <span class="text-slate-400 block text-xs mt-1 font-mono">${s.domain} (${s.ip}) — API: <code class="text-emerald-400">${s.api_url}</code></span>
+                            <span class="text-slate-500 block text-[11px] mt-1 font-mono">SSH: ${s.ssh_port} | WS: ${s.proxy_port} | UDP: ${s.udpgw_port} | Cupos: ${s.today_accounts || 0} / ${s.daily_limit}</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="pingServer('${s.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center gap-1.5 transition">
+                            <button onclick="pingServer('${s.id}')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center gap-1.5 transition">
                                 <i class="fa-solid fa-wifi text-[10px]"></i> Ping
                             </button>
-                            <button onclick="deleteServer('${s.id}', '${s.name}')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-bold transition">
+                            <button onclick="deleteServer('${s.id}', '${s.name}')" class="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-bold text-xs transition">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
                     </div>
                 `).join('');
+
+                // Render VPS IDs for the API tab
+                if (data.servers.length > 0) {
+                    document.getElementById('vpsIdCount').innerText = `${data.servers.length} Disponibles`;
+                    vpsBox.innerHTML = data.servers.map(s => `
+                        <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-slate-200 flex items-center gap-2">
+                            <span>${s.flag}</span>
+                            <b class="text-orange-400">${s.id}</b>
+                            <span class="text-slate-500 text-[11px]">(${s.domain})</span>
+                        </span>
+                    `).join('');
+                } else {
+                    document.getElementById('vpsIdCount').innerText = '0 Disponibles';
+                    vpsBox.innerHTML = '<span class="text-xs text-slate-500">No tienes servidores VPS activos.</span>';
+                }
+
             } catch (err) {
                 list.innerText = 'Error cargando servidores admin: ' + err.message;
             }
         }
 
+        async function loadAdminAccounts() {
+            const tbody = document.getElementById('adminAccountsTbody');
+            try {
+                const res = await fetch('/api/admin/accounts', {
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                allAccounts = data.accounts;
+                renderAccountsTable(allAccounts);
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-400">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderAccountsTable(accounts) {
+            const tbody = document.getElementById('adminAccountsTbody');
+            if (accounts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No hay cuentas creadas en el registro.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = accounts.map(a => {
+                const isExpired = new Date(a.expires_at) < new Date();
+                return `
+                    <tr class="hover:bg-slate-900/40 transition">
+                        <td class="p-3.5 font-bold text-emerald-400">${a.username}</td>
+                        <td class="p-3.5 text-slate-300">${a.flag || '🌐'} ${a.server_name || a.server_id}</td>
+                        <td class="p-3.5 text-slate-400 text-[11px]">${a.created_by_ip || 'Web'}</td>
+                        <td class="p-3.5 text-slate-400 text-[11px]">${new Date(a.created_at).toLocaleDateString()}</td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isExpired ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}">
+                                ${new Date(a.expires_at).toLocaleString()}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-right">
+                            <button onclick="deleteAccount('${a.id}', '${a.username}')" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition">
+                                <i class="fa-solid fa-trash text-[11px]"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterAccountsTable() {
+            const q = document.getElementById('accountSearchInput').value.toLowerCase();
+            const filtered = allAccounts.filter(a => a.username.toLowerCase().includes(q) || (a.server_name && a.server_name.toLowerCase().includes(q)));
+            renderAccountsTable(filtered);
+        }
+
+        async function deleteAccount(id, user) {
+            if (!confirm(`¿Eliminar la cuenta "${user}" del servidor y clúster?`)) return;
+            try {
+                const res = await fetch(`/api/admin/accounts/${id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                loadAdminAccounts();
+                alert('Cuenta eliminada.');
+            } catch (e) {
+                alert('Error al eliminar cuenta: ' + e.message);
+            }
+        }
+
+        // --------------------------------------------------------
+        // 5. API RESELLER B2B & GENERACIÓN DE TOKEN (bc_live_...)
+        // --------------------------------------------------------
+        async function loadApiKeysAndSettings() {
+            try {
+                const res = await fetch('/api/admin/api-keys', {
+                    headers: { Authorization: `Bearer ${adminToken}` }
+                });
+                const data = await res.json();
+                if (data.success && data.keys.length > 0) {
+                    currentApiKeys = data.keys;
+                    const primaryKey = data.keys[0].key_token;
+                    document.getElementById('primaryApiKeyInput').value = primaryKey;
+                    updateDocumentationSnippets(primaryKey);
+                }
+            } catch (err) {
+                console.warn('Error cargando API Keys:', err);
+            }
+        }
+
+        function updateDocumentationSnippets(token) {
+            const origin = window.location.origin;
+            document.getElementById('snippetCreate').innerText = `curl -X POST ${origin}/api/v1/reseller/ssh/create \\\n  -H "Authorization: Bearer ${token}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "username": "usuario_api",\n    "password": "mi_password_segura",\n    "connection_limit": 2,\n    "gb_limity": 1,\n    "expiration_days": 30,\n    "vps_id": "usa-01"\n  }'`;
+
+            document.getElementById('snippetInfo').innerText = `curl -X GET ${origin}/api/v1/reseller/ssh/info/usuario_api \\\n  -H "Authorization: Bearer ${token}"`;
+
+            document.getElementById('snippetList').innerText = `curl -X GET ${origin}/api/v1/reseller/ssh/list \\\n  -H "Authorization: Bearer ${token}"`;
+
+            document.getElementById('snippetDelete').innerText = `curl -X DELETE ${origin}/api/v1/reseller/ssh/delete/usuario_api \\\n  -H "Authorization: Bearer ${token}"`;
+        }
+
+        async function requestNewApiKey() {
+            if (!confirm('¿Deseas generar una nueva API Key Reseller (bc_live_...)?')) return;
+            try {
+                const res = await fetch('/api/admin/api-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ name: 'Token Generado ' + new Date().toLocaleTimeString(), daily_limit: 1000 })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                document.getElementById('primaryApiKeyInput').value = data.key.key_token;
+                updateDocumentationSnippets(data.key.key_token);
+                alert('¡Nueva API Key generada con éxito!\n\n' + data.key.key_token);
+                loadAdminData();
+            } catch (e) {
+                alert('Error generando key: ' + e.message);
+            }
+        }
+
+        function copyPrimaryApiKey() {
+            const token = document.getElementById('primaryApiKeyInput').value;
+            navigator.clipboard.writeText(token);
+            alert('¡Token de Acceso copiado al portapapeles!');
+        }
+
+        function copySnippet(elemId) {
+            const code = document.getElementById(elemId).innerText;
+            navigator.clipboard.writeText(code);
+            alert('¡Comando curl copiado al portapapeles!');
+        }
+
+        async function updateApiToggle(key, value) {
+            try {
+                await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ settings: { [key]: value ? 'true' : 'false' } })
+                });
+            } catch (err) {
+                alert('Error al guardar ajuste: ' + err.message);
+            }
+        }
+
+        async function submitChangePassword(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newAdminPassInput').value;
+            const msgDiv = document.getElementById('changePassMsg');
+            msgDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/admin/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ new_password: newPass })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                msgDiv.innerText = '¡Contraseña actualizada con éxito!';
+                msgDiv.className = 'text-xs text-emerald-400 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20';
+                msgDiv.classList.remove('hidden');
+                document.getElementById('newAdminPassInput').value = '';
+            } catch (err) {
+                msgDiv.innerText = err.message;
+                msgDiv.className = 'text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20';
+                msgDiv.classList.remove('hidden');
+            }
+        }
+
+        async function submitGlobalSettings(e) {
+            e.preventDefault();
+            const duration = document.getElementById('settingDurationDays').value;
+            const title = document.getElementById('settingSiteTitle').value;
+
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        settings: {
+                            default_account_duration_days: duration,
+                            site_title: title
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                alert('¡Parámetros guardados con éxito!');
+            } catch (e) {
+                alert('Error al guardar: ' + e.message);
+            }
+        }
+
+        // --------------------------------------------------------
+        // 6. GESTIÓN DE SERVIDORES VPS
+        // --------------------------------------------------------
         function openAddServerModal() {
             document.getElementById('addServerForm').reset();
             document.getElementById('srvPortSsh').value = 22;
@@ -786,7 +1519,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${adminToken}`
+                        Authorization: `Bearer ${adminToken}`
                     },
                     body: JSON.stringify(payload)
                 });

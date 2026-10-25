@@ -2,6 +2,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const sqlite3 = require('sqlite3').verbose();
 
 function createDatabase(options = {}) {
@@ -76,10 +77,41 @@ function createDatabase(options = {}) {
       );
     `);
 
-    // Sembrar contraseña de administrador por defecto si no existe
-    const adminPass = await query("SELECT value FROM admin_config WHERE key = 'admin_password'");
-    if (adminPass.rowCount === 0) {
-      await query("INSERT INTO admin_config (key, value) VALUES ('admin_password', 'Admin12345!')");
+    await query(`
+      CREATE TABLE IF NOT EXISTS api_keys (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        key_token TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL DEFAULT 'Token Principal Reseller',
+        role TEXT NOT NULL DEFAULT 'reseller',
+        is_active INTEGER NOT NULL DEFAULT 1,
+        daily_limit INTEGER NOT NULL DEFAULT 500,
+        total_created INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_used_at DATETIME
+      );
+    `);
+
+    // Sembrar API Key por defecto si no existe
+    const keysCount = await query("SELECT COUNT(*) as count FROM api_keys");
+    if (!keysCount.rows[0]?.count) {
+      const initialKey = 'bc_live_' + crypto.randomBytes(24).toString('hex');
+      await query("INSERT INTO api_keys (key_token, name) VALUES (?, 'Token Principal Reseller')", [initialKey]);
+    }
+
+    // Sembrar configuraciones por defecto
+    const defaultConfigs = [
+      { key: 'admin_password', value: 'Admin12345!' },
+      { key: 'reseller_api_enabled', value: 'true' },
+      { key: 'reseller_limit_gb', value: 'true' },
+      { key: 'default_account_duration_days', value: '2' },
+      { key: 'site_title', value: 'JOIF Cloud' }
+    ];
+
+    for (const item of defaultConfigs) {
+      const existing = await query("SELECT value FROM admin_config WHERE key = ?", [item.key]);
+      if (existing.rowCount === 0) {
+        await query("INSERT INTO admin_config (key, value) VALUES (?, ?)", [item.key, item.value]);
+      }
     }
   };
 

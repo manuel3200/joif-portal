@@ -275,4 +275,80 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     assert.ok(cl);
     assert.equal(cl.flag, '🇨🇱');
   });
+
+  await t.test('7. API Reseller B2B & Generación de Token bc_live_...', async () => {
+    // 1. Obtener API Keys como Admin
+    const keysRes = await fetch(`${serverHandle.url}/api/admin/api-keys`, {
+      headers: { 'x-admin-password': 'Admin12345!' }
+    });
+    assert.equal(keysRes.status, 200);
+    const keysData = await keysRes.json();
+    assert.ok(keysData.keys.length >= 1);
+    const defaultKey = keysData.keys[0].key_token;
+    assert.ok(defaultKey.startsWith('bc_live_'), 'El token debe comenzar con bc_live_');
+    assert.equal(defaultKey.length, 56, 'El token debe tener 56 caracteres (bc_live_ + 48 hex)');
+
+    // 2. Generar una nueva API Key desde el Admin
+    const genRes = await fetch(`${serverHandle.url}/api/admin/api-keys`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': 'Admin12345!'
+      },
+      body: JSON.stringify({ name: 'Token Bot Telegram', daily_limit: 1000 })
+    });
+    assert.equal(genRes.status, 201);
+    const genData = await genRes.json();
+    assert.ok(genData.key.key_token.startsWith('bc_live_'));
+    const testApiToken = genData.key.key_token;
+
+    // 3. Crear cuenta vía POST /api/v1/reseller/ssh/create con Bearer Token
+    const createRes = await fetch(`${serverHandle.url}/api/v1/reseller/ssh/create`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${testApiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: 'botuser99',
+        password: 'password123',
+        connection_limit: 2,
+        expiration_days: 30,
+        vps_id: 'usa-01'
+      })
+    });
+    assert.equal(createRes.status, 201);
+    const createData = await createRes.json();
+    assert.equal(createData.success, true);
+    assert.equal(createData.data.username, 'botuser99');
+    assert.equal(createData.data.server.id, 'usa-01');
+    assert.ok(createData.data.server.ssh_port === 22);
+
+    // 4. Consultar info de la cuenta: GET /api/v1/reseller/ssh/info/:username
+    const infoRes = await fetch(`${serverHandle.url}/api/v1/reseller/ssh/info/botuser99`, {
+      headers: { Authorization: `Bearer ${testApiToken}` }
+    });
+    assert.equal(infoRes.status, 200);
+    const infoData = await infoRes.json();
+    assert.equal(infoData.username, 'botuser99');
+    assert.equal(infoData.is_active, true);
+    assert.ok(infoData.days_remaining >= 29);
+
+    // 5. Listar cuentas: GET /api/v1/reseller/ssh/list
+    const listRes = await fetch(`${serverHandle.url}/api/v1/reseller/ssh/list`, {
+      headers: { Authorization: `Bearer ${testApiToken}` }
+    });
+    assert.equal(listRes.status, 200);
+    const listData = await listRes.json();
+    assert.ok(listData.accounts.some((a) => a.username === 'botuser99'));
+
+    // 6. Eliminar cuenta: DELETE /api/v1/reseller/ssh/delete/:username
+    const delRes = await fetch(`${serverHandle.url}/api/v1/reseller/ssh/delete/botuser99`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${testApiToken}` }
+    });
+    assert.equal(delRes.status, 200);
+    const delData = await delRes.json();
+    assert.equal(delData.success, true);
+  });
 });

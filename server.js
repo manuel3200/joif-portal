@@ -223,6 +223,35 @@ function createApp(options = {}) {
     return res.status(401).json({ error: 'Acceso no autorizado como administrador.' });
   };
 
+  // Middleware para autenticar llamadas de Reseller con Token B2B (bc_live_...)
+  const requireResellerAuth = async (req, res, next) => {
+    const enabledRes = await database.query("SELECT value FROM admin_config WHERE key = 'reseller_api_enabled'");
+    const isEnabled = enabledRes.rows[0]?.value !== 'false';
+    if (!isEnabled) {
+      return res.status(403).json({ error: 'La API Reseller está desactivada actualmente.' });
+    }
+
+    const authHeader = req.headers['authorization'] || '';
+    let token = '';
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7).trim();
+    } else if (req.headers['x-api-key']) {
+      token = String(req.headers['x-api-key']).trim();
+    }
+
+    if (!token) {
+      return res.status(401).json({ error: 'Token de autorización requerido en header Authorization: Bearer ${b2bApiToken}' });
+    }
+
+    const keyRes = await database.query("SELECT * FROM api_keys WHERE key_token = ? AND is_active = 1", [token]);
+    if (keyRes.rowCount === 0) {
+      return res.status(401).json({ error: 'Token de API inválido, revocado o inactivo.' });
+    }
+
+    req.resellerKey = keyRes.rows[0];
+    next();
+  };
+
   // ==========================================
   // RUTAS PÚBLICAS
   // ==========================================
@@ -585,6 +614,331 @@ function createApp(options = {}) {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
+  });
+
+  // ==========================================
+  // CONFIGURACIÓN Y GESTIÓN DE API KEYS (ADMIN)
+  // ==========================================
+
+  // Obtener configuraciones generales y estadísticas
+  app.get('/api/admin/settings', requireAdmin, async (req, res) => {
+    try {
+      const configRes = await database.query('SELECT key, value FROM admin_config');
+      const configs = {};
+      configRes.rows.forEach(r => { configs[r.key] = r.value; });
+
+      const srvCount = await database.query('SELECT COUNT(*) as count FROM servers');
+      const accCount = await database.query('SELECT COUNT(*) as count FROM accounts');
+      const todayCount = await database.query("SELECT COUNT(*) as count FROM accounts WHERE date(created_at) = date('now')");
+      const keysCount = await database.query('SELECT COUNT(*) as count FROM api_keys WHERE is_active = 1');
+
+      res.json({
+        success: true,
+        configs,
+        stats: {
+          total_servers: srvCount.rows[0]?.count || 0,
+          total_accounts: accCount.rows[0]?.count || 0,
+          today_accounts: todayCount.rows[0]?.count || 0,
+          active_api_keys: keysCount.rows[0]?.count || 0
+        }
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Actualizar configuraciones
+  app.post('/api/admin/settings', requireAdmin, async (req, res) => {
+    try {
+      const { settings } = req.body;
+      if (!settings || typeof settings !== 'object') {
+        return res.status(400).json({ error: 'Configuración inválida' });
+      }
+
+      for (const [key, value] of Object.entries(settings)) {
+        if (key === 'admin_password') continue;
+        await database.query(`
+          INSERT INTO admin_config (key, value) VALUES (?, ?)
+          ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        `, [key, String(value)]);
+      }
+
+      res.json({ success: true, message: 'Configuraciones actualizadas exitosamente.' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Cambiar contraseña de administrador
+  app.post('/api/admin/change-password', requireAdmin, async (req, res) => {
+    try {
+      const { new_password } = req.body;
+      if (!new_password || typeof new_password !== 'string' || new_password.length < 6) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres.' });
+      }
+
+      await database.query(`
+        INSERT INTO admin_config (key, value) VALUES ('admin_password', ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value
+      `, [new_password]);
+
+      res.json({ success: true, message: 'Contraseña de administrador actualizada.' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Listar todas las API Keys
+  app.get('/api/admin/api-keys', requireAdmin, async (req, res) => {
+    try {
+      const result = await database.query(`
+        SELECT id, key_token, name, role, is_active, daily_limit, total_created, created_at, last_used_at
+        FROM api_keys
+        ORDER BY created_at DESC
+      `);
+      res.json({ success: true, keys: result.rows });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Generar nueva API Key (estilo bc_live_...)
+  app.post('/api/admin/api-keys', requireAdmin, async (req, res) => {
+    try {
+      const { name, daily_limit } = req.body;
+      const keyToken = 'bc_live_' + crypto.randomBytes(24).toString('hex');
+      const keyName = name && name.trim() ? name.trim() : 'Token Reseller ' + new Date().toISOString().slice(0, 10);
+      const limit = Number(daily_limit) > 0 ? Number(daily_limit) : 500;
+
+      const result = await database.query(`
+        INSERT INTO api_keys (key_token, name, daily_limit)
+        VALUES (?, ?, ?)
+      `, [keyToken, keyName, limit]);
+
+      res.status(201).json({
+        success: true,
+        message: 'API Key generada exitosamente.',
+        key: {
+          id: result.lastID,
+          key_token: keyToken,
+          name: keyName,
+          daily_limit: limit,
+          is_active: 1
+        }
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Alternar estado activo de API Key
+  app.post('/api/admin/api-keys/:id/toggle', requireAdmin, async (req, res) => {
+    try {
+      const curr = await database.query('SELECT is_active FROM api_keys WHERE id = ?', [req.params.id]);
+      if (curr.rowCount === 0) return res.status(404).json({ error: 'Key no encontrada' });
+      const newStatus = curr.rows[0].is_active ? 0 : 1;
+      await database.query('UPDATE api_keys SET is_active = ? WHERE id = ?', [newStatus, req.params.id]);
+      res.json({ success: true, is_active: newStatus });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Eliminar API Key
+  app.delete('/api/admin/api-keys/:id', requireAdmin, async (req, res) => {
+    try {
+      await database.query('DELETE FROM api_keys WHERE id = ?', [req.params.id]);
+      res.json({ success: true, message: 'API Key eliminada.' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ==========================================
+  // API RESELLER B2B (INTEGRACIÓN EXTERNA)
+  // ==========================================
+
+  // 1. Crear cuenta SSH en un VPS asignado (POST /api/v1/reseller/ssh/create)
+  app.post('/api/v1/reseller/ssh/create', requireResellerAuth, async (req, res) => {
+    const { username, password, connection_limit, expiration_days, vps_id, gb_limity } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios: username y password.' });
+    }
+
+    if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
+      return res.status(400).json({ error: 'El nombre de usuario debe contener entre 3 y 24 caracteres alfanuméricos.' });
+    }
+
+    // Buscar servidor
+    let server = null;
+    if (vps_id !== undefined && vps_id !== null && vps_id !== '') {
+      const srvRes = await database.query('SELECT * FROM servers WHERE (id = ? OR rowid = ?) AND is_active = 1', [String(vps_id), String(vps_id)]);
+      server = srvRes.rows[0];
+    }
+    if (!server) {
+      const fallback = await database.query('SELECT * FROM servers WHERE is_active = 1 ORDER BY created_at ASC LIMIT 1');
+      server = fallback.rows[0];
+    }
+    if (!server) {
+      return res.status(503).json({ error: 'No hay servidores VPS disponibles o activos en el clúster.' });
+    }
+
+    const durationDays = Number(expiration_days) > 0 ? Number(expiration_days) : 30;
+    const expiresDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    const expiresIso = expiresDate.toISOString();
+
+    try {
+      await createEdgeAccount({
+        apiUrl: server.api_url,
+        apiSecret: server.api_secret,
+        username,
+        password,
+        expirationDate: expiresIso,
+        maxConnections: Number(connection_limit) || 1
+      });
+    } catch (edgeErr) {
+      console.error(`[RESELLER API] Error creando cuenta en VPS ${server.name}:`, edgeErr.message);
+      return res.status(502).json({ error: `Error al crear cuenta en ${server.name}: ${edgeErr.message}` });
+    }
+
+    // Registrar en BD
+    await database.query(`
+      INSERT INTO accounts (server_id, username, password, created_by_ip, expires_at)
+      VALUES (?, ?, ?, ?, ?)
+    `, [server.id, username, password, 'API_B2B', expiresIso]);
+
+    // Incrementar contador en api_keys
+    await database.query(`
+      UPDATE api_keys
+      SET total_created = total_created + 1, last_used_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `, [req.resellerKey.id]);
+
+    let payload = server.payload_template;
+    if (!payload) {
+      payload = `GET / HTTP/1.3[crlf]Host: rexo.personal.com.ar[crlf][crlf][crlf][split][crlf][split]GETT / HTTP/1.1[crlf]Host: ${server.domain}[crlf]Connection: Keep-Alive[crlf]Upgrade: websocket[crlf][crlf]`;
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Cuenta creada con éxito en el clúster',
+      data: {
+        username,
+        password,
+        connection_limit: Number(connection_limit) || 1,
+        gb_limit: Number(gb_limity) || 0,
+        expiration_days: durationDays,
+        expires_at: expiresIso,
+        vps_id: server.id,
+        server: {
+          id: server.id,
+          name: server.name,
+          country: server.country_name,
+          flag: server.flag,
+          domain: server.domain,
+          ip: server.ip,
+          ssh_port: server.ssh_port,
+          proxy_port: server.proxy_port,
+          ssl_port: server.ssl_port,
+          udpgw_port: server.udpgw_port
+        },
+        payload
+      }
+    });
+  });
+
+  // 2. Info de cuenta específica (GET /api/v1/reseller/ssh/info/:username)
+  app.get('/api/v1/reseller/ssh/info/:username', requireResellerAuth, async (req, res) => {
+    const { username } = req.params;
+    const accRes = await database.query(`
+      SELECT a.*, s.name as server_name, s.domain, s.ip, s.ssh_port, s.proxy_port, s.udpgw_port, s.api_url, s.api_secret
+      FROM accounts a
+      JOIN servers s ON a.server_id = s.id
+      WHERE a.username = ?
+      ORDER BY a.created_at DESC LIMIT 1
+    `, [username]);
+
+    if (accRes.rowCount === 0) {
+      return res.status(404).json({ error: `Usuario ${username} no encontrado` });
+    }
+
+    const acc = accRes.rows[0];
+    const expDate = new Date(acc.expires_at);
+    const now = new Date();
+    const daysRemaining = Math.max(0, Math.ceil((expDate - now) / (1000 * 60 * 60 * 24)));
+
+    return res.json({
+      success: true,
+      username: acc.username,
+      server_id: acc.server_id,
+      server_name: acc.server_name,
+      domain: acc.domain,
+      ip: acc.ip,
+      ports: {
+        ssh: acc.ssh_port,
+        proxy: acc.proxy_port,
+        udpgw: acc.udpgw_port
+      },
+      expires_at: acc.expires_at,
+      days_remaining: daysRemaining,
+      created_at: acc.created_at,
+      is_active: expDate > now
+    });
+  });
+
+  // 3. Listar cuentas creadas (GET /api/v1/reseller/ssh/list)
+  app.get('/api/v1/reseller/ssh/list', requireResellerAuth, async (req, res) => {
+    const result = await database.query(`
+      SELECT a.id, a.server_id, s.name as server_name, s.domain, s.ip,
+             a.username, a.expires_at, a.created_at,
+             CASE WHEN datetime(a.expires_at) > datetime('now') THEN 1 ELSE 0 END as is_active
+      FROM accounts a
+      JOIN servers s ON a.server_id = s.id
+      ORDER BY a.created_at DESC
+      LIMIT 200
+    `);
+
+    return res.json({
+      success: true,
+      total: result.rowCount,
+      accounts: result.rows
+    });
+  });
+
+  // 4. Eliminar cuenta permanentemente (DELETE /api/v1/reseller/ssh/delete/:username)
+  app.delete('/api/v1/reseller/ssh/delete/:username', requireResellerAuth, async (req, res) => {
+    const { username } = req.params;
+    const accRes = await database.query(`
+      SELECT a.id, a.username, a.server_id, s.api_url, s.api_secret
+      FROM accounts a
+      JOIN servers s ON a.server_id = s.id
+      WHERE a.username = ?
+      LIMIT 1
+    `, [username]);
+
+    if (accRes.rowCount === 0) {
+      return res.status(404).json({ error: `Usuario ${username} no encontrado` });
+    }
+
+    const acc = accRes.rows[0];
+
+    try {
+      await deleteEdgeAccount({
+        apiUrl: acc.api_url,
+        apiSecret: acc.api_secret,
+        username: acc.username
+      });
+    } catch (e) {
+      console.warn('[RESELLER API] Aviso eliminando en VPS:', e.message);
+    }
+
+    await database.query('DELETE FROM accounts WHERE id = ?', [acc.id]);
+
+    return res.json({
+      success: true,
+      message: `Cuenta ${username} eliminada permanentemente del clúster.`
+    });
   });
 
   return { app, database, antibot };
