@@ -2,18 +2,19 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Instalar dependencias del sistema mínimas
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     ca-certificates \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev --no-audit
 
 COPY . .
 
-# Directorio para volumen persistente SQLite
 RUN mkdir -p /app/data && chown -R node:node /app
 
 USER node
