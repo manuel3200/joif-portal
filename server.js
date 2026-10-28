@@ -12,6 +12,46 @@ const PORT = Number(process.env.PORT) || 3000;
 const CAPTCHA_SECRET = process.env.CAPTCHA_SECRET || crypto.randomBytes(16).toString('hex');
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+function signAdminToken(payload, secret = JWT_SECRET) {
+  const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', secret).update(data).digest('base64url');
+  return `${data}.${sig}`;
+}
+
+function verifyAdminToken(token, secret = JWT_SECRET) {
+  if (typeof token !== 'string' || !token) return null;
+  const dotIndex = token.indexOf('.');
+  if (dotIndex === -1) return null;
+  const data = token.slice(0, dotIndex);
+  const sig = token.slice(dotIndex + 1);
+  if (!data || !sig) return null;
+
+  const expectedSig = crypto.createHmac('sha256', secret).update(data).digest('base64url');
+  const bufA = Buffer.from(sig);
+  const bufB = Buffer.from(expectedSig);
+  if (bufA.length !== bufB.length || !crypto.timingSafeEqual(bufA, bufB)) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
+    if (!payload || payload.role !== 'admin' || typeof payload.exp !== 'number' || payload.exp <= Date.now()) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 class AntibotChallengeCache {
   constructor() {
     this.challenges = new Map();
@@ -198,7 +238,7 @@ function createApp(options = {}) {
     );
   };
 
-  // Middleware de Admin (Acepta JWT token, contraseña de admin o Token API Key joif_live_... / bc_live_...)
+  // Middleware de Admin (Acepta JWT token firmado, contraseña de admin o Token API Key joif_live_... / bc_live_...)
   const requireAdmin = async (req, res, next) => {
     const authHeader = req.headers['authorization'] || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
@@ -208,7 +248,7 @@ function createApp(options = {}) {
     const expectedPass = storedPassRow.rows[0]?.value || 'Admin12345!';
 
     if (adminPassHeader) {
-      if (adminPassHeader === expectedPass) {
+      if (safeCompare(adminPassHeader, expectedPass)) {
         return next();
       }
       const keyRow = await database.query("SELECT id FROM api_keys WHERE key_token = ? AND is_active = 1", [adminPassHeader]);
@@ -225,12 +265,10 @@ function createApp(options = {}) {
         }
       }
 
-      try {
-        const decoded = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
-        if (decoded && decoded.role === 'admin' && decoded.exp > Date.now()) {
-          return next();
-        }
-      } catch {}
+      const decoded = verifyAdminToken(token, JWT_SECRET);
+      if (decoded && decoded.role === 'admin') {
+        return next();
+      }
     }
 
     return res.status(401).json({ error: 'Acceso no autorizado. Se requiere contraseña de administrador o Token API Key válido.' });
@@ -443,18 +481,42 @@ function createApp(options = {}) {
   // RUTAS DE ADMINISTRACIÓN
   // ==========================================
 
-  // Login de Admin
+  // Login de Admin con Rate Limiting anti-fuerza bruta
+  const adminLoginAttempts = new Map();
+  const cleanupAdminAttempts = setInterval(() => {
+    const now = Date.now();
+    for (const [ip, item] of adminLoginAttempts.entries()) {
+      if (item.lockedUntil < now && item.resetAt < now) adminLoginAttempts.delete(ip);
+    }
+  }, 60000);
+  if (cleanupAdminAttempts.unref) cleanupAdminAttempts.unref();
+
   app.post('/api/admin/login', async (req, res) => {
-    const { password } = req.body;
+    const clientIp = getClientIp(req);
+    const now = Date.now();
+    const attempt = adminLoginAttempts.get(clientIp) || { count: 0, lockedUntil: 0, resetAt: now + 600000 };
+
+    if (attempt.lockedUntil > now) {
+      const waitMinutes = Math.ceil((attempt.lockedUntil - now) / 60000);
+      return res.status(429).json({ error: `Demasiados intentos fallidos. Intenta nuevamente en ${waitMinutes} minutos.` });
+    }
+
+    const { password } = req.body || {};
     const passRow = await database.query("SELECT value FROM admin_config WHERE key = 'admin_password'");
     const expected = passRow.rows[0]?.value || 'Admin12345!';
 
-    if (password === expected) {
-      const token = Buffer.from(
-        JSON.stringify({ role: 'admin', exp: Date.now() + 24 * 60 * 60 * 1000 })
-      ).toString('base64url');
+    if (safeCompare(password, expected)) {
+      adminLoginAttempts.delete(clientIp);
+      const token = signAdminToken({ role: 'admin', exp: Date.now() + 24 * 60 * 60 * 1000 }, JWT_SECRET);
       return res.json({ success: true, token });
     }
+
+    attempt.count += 1;
+    if (attempt.count >= 5) {
+      attempt.lockedUntil = now + 900000; // 15 minutos de bloqueo tras 5 fallos
+    }
+    adminLoginAttempts.set(clientIp, attempt);
+
     return res.status(401).json({ error: 'Contraseña de administrador incorrecta.' });
   });
 
@@ -781,6 +843,10 @@ function createApp(options = {}) {
 
     if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
       return res.status(400).json({ error: 'El nombre de usuario debe contener entre 3 y 24 caracteres alfanuméricos.' });
+    }
+
+    if (typeof password !== 'string' || password.length < 4 || password.length > 64 || /[\r\n\0:]/.test(password)) {
+      return res.status(400).json({ error: 'La contraseña debe tener entre 4 y 64 caracteres válidos (sin saltos ni dos puntos).' });
     }
 
     // Buscar servidor

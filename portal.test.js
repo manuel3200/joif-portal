@@ -274,6 +274,20 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     const cl = listData.servers.find((s) => s.id === 'cl-01');
     assert.ok(cl);
     assert.equal(cl.flag, '🇨🇱');
+
+    // Test de Seguridad: Intentar falsificar token sin firma criptográfica HMAC
+    const fakeToken = Buffer.from(JSON.stringify({ role: 'admin', exp: Date.now() + 86400000 })).toString('base64url');
+    const fakeRes = await fetch(`${serverHandle.url}/api/admin/servers`, {
+      headers: { Authorization: `Bearer ${fakeToken}` }
+    });
+    assert.equal(fakeRes.status, 401, 'Token falsificado sin firma debe ser rechazado con 401');
+
+    // Test de Seguridad: Token con firma alterada
+    const tamperedToken = `${loginData.token.split('.')[0]}.firmainvalida123`;
+    const tamperedRes = await fetch(`${serverHandle.url}/api/admin/servers`, {
+      headers: { Authorization: `Bearer ${tamperedToken}` }
+    });
+    assert.equal(tamperedRes.status, 401, 'Token con firma alterada debe ser rechazado con 401');
   });
 
   await t.test('7. API JOIF Reseller & Generación de Token joif_live_...', async () => {
