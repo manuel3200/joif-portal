@@ -534,6 +534,74 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Telegram Bot Verification Settings Box -->
+                        <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-4 md:col-span-2">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                        <i class="fa-brands fa-telegram text-sky-400 text-lg"></i> Verificación por Bot de Telegram & Grupo Oficial
+                                    </h4>
+                                    <p class="text-xs text-slate-400 mt-0.5">Exige que los usuarios estén unidos a tu comunidad de Telegram para generar un código de acceso de 6 dígitos.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="settingTelegramEnabled" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                                        <span class="ml-2 text-xs font-semibold text-slate-300">Activar Verificación Telegram</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <form onsubmit="submitTelegramSettings(event)" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 mb-1">
+                                            Token del Bot (de @BotFather) <span class="text-rose-400">*</span>
+                                        </label>
+                                        <input type="password" id="settingTelegramToken" placeholder="Ej: 7123456789:AAFxAbcDeFgHiJkLmNoPqRsTuVwXyZ" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-sky-500 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 mb-1">
+                                            ID o Username del Grupo/Canal <span class="text-rose-400">*</span>
+                                        </label>
+                                        <input type="text" id="settingTelegramGroup" placeholder="Ej: @MiGrupoOficial o -1001234567890" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 mb-1">
+                                            Enlace de Invitación al Grupo
+                                        </label>
+                                        <input type="url" id="settingTelegramLink" placeholder="Ej: https://t.me/MiGrupoOficial" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-400 mb-1">
+                                            Username del Bot (Auto-detectado)
+                                        </label>
+                                        <input type="text" id="settingTelegramBotUser" placeholder="Se detecta automáticamente al probar conexión" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-sky-500" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 flex items-start gap-2">
+                                    <i class="fa-solid fa-circle-info text-sky-400 mt-0.5 shrink-0"></i>
+                                    <div>
+                                        <strong class="text-slate-200">Requisito importante:</strong> Agrega tu Bot como <b>Administrador</b> en tu grupo de Telegram para que Telegram le permita consultar la lista de miembros mediante la API.
+                                    </div>
+                                </div>
+
+                                <div id="telegramTestResult" class="hidden text-xs p-3 rounded-xl border"></div>
+
+                                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                                    <button type="button" onclick="testTelegramBotConnection()" id="btnTestTelegram" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sky-300 rounded-xl text-xs transition flex items-center gap-2">
+                                        <i class="fa-solid fa-stethoscope"></i>
+                                        <span>Probar Conexión con Telegram</span>
+                                    </button>
+                                    <button type="submit" id="btnSaveTelegram" class="py-2.5 px-6 bg-sky-500 hover:bg-sky-600 font-bold text-white rounded-xl text-xs transition flex items-center gap-2 shadow-lg shadow-sky-500/20">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        <span>Guardar Configuración de Telegram</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- Password Change Box -->
                         <div class="card-glass rounded-2xl p-6 border border-slate-800 space-y-4">
                             <h4 class="text-sm font-bold text-white flex items-center gap-2">
@@ -625,8 +693,28 @@
                     </div>
                 </div>
 
-                <!-- Anti-Bot Math Captcha -->
-                <div>
+                <!-- Sección 1: Verificación vía Bot de Telegram (Activo si configurado) -->
+                <div id="telegramVerificationSection" class="hidden space-y-2">
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center justify-between">
+                        <span class="flex items-center gap-1.5"><i class="fa-brands fa-telegram text-sky-400 text-sm"></i> Código de Telegram</span>
+                        <a id="telegramBotBtn" href="#" target="_blank" class="text-sky-400 hover:text-sky-300 text-[11px] font-bold flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-0.5 rounded border border-sky-500/30 transition">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Obtener Código
+                        </a>
+                    </label>
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="formTelegramCode" maxlength="6" pattern="[0-9]{6}" placeholder="Código de 6 dígitos (ej: 482910)" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500 font-mono tracking-widest text-center text-lg font-bold placeholder:text-xs placeholder:font-normal placeholder:tracking-normal">
+                    </div>
+                    <div class="bg-sky-950/40 border border-sky-800/40 rounded-xl p-3 flex items-start gap-2.5 text-xs text-sky-200">
+                        <i class="fa-solid fa-circle-check text-sky-400 mt-0.5 shrink-0"></i>
+                        <div class="text-[11px] leading-relaxed">
+                            Debes estar unido a nuestro grupo oficial. Entra a nuestro bot <a id="telegramBotNameSpan" href="#" target="_blank" class="text-sky-400 underline font-bold">@Bot</a>, presiona <b>/start</b> y te enviará tu código al instante.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Anti-Bot Math Captcha (Modo fallback si Telegram está desactivado) -->
+                <div id="mathCaptchaSection">
                     <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center justify-between">
                         <span>Verificación Anti-Bot</span>
                         <button type="button" onclick="loadCaptcha()" class="text-emerald-400 text-[11px] hover:underline">
@@ -637,7 +725,7 @@
                         <div id="captchaQuestion" class="bg-slate-900/90 border border-slate-700 rounded-lg px-4 py-2 text-sm font-bold text-amber-400 min-w-[120px] text-center">
                             Cargando...
                         </div>
-                        <input type="number" id="formCaptchaAnswer" required placeholder="Tu respuesta" class="flex-1 bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <input type="number" id="formCaptchaAnswer" placeholder="Tu respuesta" class="flex-1 bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
                     </div>
                     <input type="hidden" id="formCaptchaToken">
                 </div>
@@ -861,8 +949,23 @@
         let currentApiKeys = [];
         let currentSettings = {};
         let adminToken = localStorage.getItem('mivpn_admin_token') || '';
+        let portalPublicConfig = { telegram_verification_enabled: false, telegram_bot_username: '', telegram_group_link: '' };
+
+        async function loadPublicConfig() {
+            try {
+                const res = await fetch('/api/public/config');
+                const data = await res.json();
+                if (data.success) {
+                    portalPublicConfig = data;
+                    if (data.site_title) {
+                        document.title = `${data.site_title} - Servidores SSH & WebSocket Gratuitos`;
+                    }
+                }
+            } catch {}
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadPublicConfig();
             loadServers();
 
             // Si se abre con hash #admin y ya hay token, abrir directo
@@ -979,10 +1082,38 @@
             document.getElementById('modalServerDomain').innerText = server.domain;
             generateRandomUser();
             generateRandomPass();
-            document.getElementById('formCaptchaAnswer').value = '';
+
+            if (document.getElementById('formTelegramCode')) {
+                document.getElementById('formTelegramCode').value = '';
+            }
+            if (document.getElementById('formCaptchaAnswer')) {
+                document.getElementById('formCaptchaAnswer').value = '';
+            }
             document.getElementById('createErrorMsg').classList.add('hidden');
 
-            loadCaptcha();
+            if (portalPublicConfig.telegram_verification_enabled) {
+                document.getElementById('telegramVerificationSection').classList.remove('hidden');
+                document.getElementById('mathCaptchaSection').classList.add('hidden');
+                document.getElementById('formTelegramCode').required = true;
+                document.getElementById('formCaptchaAnswer').required = false;
+
+                const botUser = portalPublicConfig.telegram_bot_username || 'Bot';
+                const botUrl = portalPublicConfig.telegram_bot_username ? `https://t.me/${portalPublicConfig.telegram_bot_username}?start=vpn` : (portalPublicConfig.telegram_group_link || '#');
+                const botBtn = document.getElementById('telegramBotBtn');
+                const botNameSpan = document.getElementById('telegramBotNameSpan');
+                if (botBtn) botBtn.href = botUrl;
+                if (botNameSpan) {
+                    botNameSpan.href = botUrl;
+                    botNameSpan.innerText = `@${botUser}`;
+                }
+            } else {
+                document.getElementById('telegramVerificationSection').classList.add('hidden');
+                document.getElementById('mathCaptchaSection').classList.remove('hidden');
+                document.getElementById('formTelegramCode').required = false;
+                document.getElementById('formCaptchaAnswer').required = true;
+                loadCaptcha();
+            }
+
             document.getElementById('createModal').classList.remove('hidden');
         }
 
@@ -1038,13 +1169,18 @@
             const payload = {
                 serverId: document.getElementById('selectedServerId').value,
                 username: document.getElementById('formUsername').value.trim(),
-                password: document.getElementById('formPassword').value.trim(),
-                captchaAnswer: document.getElementById('formCaptchaAnswer').value.trim(),
-                challengeId: currentCaptcha.challengeId,
-                expiresAt: currentCaptcha.expiresAt,
-                signature: currentCaptcha.signature,
-                captchaToken: currentCaptcha.token
+                password: document.getElementById('formPassword').value.trim()
             };
+
+            if (portalPublicConfig.telegram_verification_enabled) {
+                payload.telegramCode = document.getElementById('formTelegramCode').value.trim();
+            } else {
+                payload.captchaAnswer = document.getElementById('formCaptchaAnswer').value.trim();
+                payload.challengeId = currentCaptcha.challengeId;
+                payload.expiresAt = currentCaptcha.expiresAt;
+                payload.signature = currentCaptcha.signature;
+                payload.captchaToken = currentCaptcha.token;
+            }
 
             try {
                 const res = await fetch('/api/public/create-account', {
@@ -1062,7 +1198,9 @@
             } catch (err) {
                 errorDiv.innerText = err.message;
                 errorDiv.classList.remove('hidden');
-                loadCaptcha();
+                if (!portalPublicConfig.telegram_verification_enabled) {
+                    loadCaptcha();
+                }
             } finally {
                 submitBtn.disabled = false;
                 submitText.innerText = 'Crear Cuenta Ahora';
@@ -1210,6 +1348,14 @@
                     document.getElementById('toggleLimitGb').checked = currentSettings.reseller_limit_gb !== 'false';
                     document.getElementById('settingDurationDays').value = currentSettings.default_account_duration_days || 2;
                     document.getElementById('settingSiteTitle').value = currentSettings.site_title || 'JOIF Cloud';
+
+                    if (document.getElementById('settingTelegramEnabled')) {
+                        document.getElementById('settingTelegramEnabled').checked = currentSettings.telegram_verification_enabled === 'true';
+                        document.getElementById('settingTelegramToken').value = currentSettings.telegram_bot_token || '';
+                        document.getElementById('settingTelegramGroup').value = currentSettings.telegram_group_id || '';
+                        document.getElementById('settingTelegramLink').value = currentSettings.telegram_group_link || '';
+                        document.getElementById('settingTelegramBotUser').value = currentSettings.telegram_bot_username || '';
+                    }
                 }
             } catch (err) {
                 console.warn('Error cargando settings admin:', err);
@@ -1471,6 +1617,94 @@
                 alert('¡Parámetros guardados con éxito!');
             } catch (e) {
                 alert('Error al guardar: ' + e.message);
+            }
+        }
+
+        async function submitTelegramSettings(e) {
+            e.preventDefault();
+            const isEnabled = document.getElementById('settingTelegramEnabled').checked ? 'true' : 'false';
+            const token = document.getElementById('settingTelegramToken').value.trim();
+            const group = document.getElementById('settingTelegramGroup').value.trim();
+            const link = document.getElementById('settingTelegramLink').value.trim();
+
+            const btn = document.getElementById('btnSaveTelegram');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        settings: {
+                            telegram_verification_enabled: isEnabled,
+                            telegram_bot_token: token,
+                            telegram_group_id: group,
+                            telegram_group_link: link
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Error al guardar');
+                alert('¡Configuración de Telegram guardada y servicio actualizado exitosamente!');
+                loadPublicConfig();
+            } catch (err) {
+                alert('Error guardando configuración: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function testTelegramBotConnection() {
+            const token = document.getElementById('settingTelegramToken').value.trim();
+            const group = document.getElementById('settingTelegramGroup').value.trim();
+            const resultDiv = document.getElementById('telegramTestResult');
+            const btn = document.getElementById('btnTestTelegram');
+
+            if (!token) {
+                alert('Por favor ingresa primero el Token del Bot.');
+                return;
+            }
+
+            resultDiv.classList.remove('hidden');
+            resultDiv.className = 'text-xs p-3 rounded-xl border bg-slate-900 border-slate-700 text-slate-300';
+            resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Probando conexión con Telegram API...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/admin/telegram/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ botToken: token, groupId: group })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    resultDiv.className = 'text-xs p-3 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 space-y-1';
+                    let html = `<div><i class="fa-solid fa-circle-check mr-1 text-emerald-400"></i> <b>¡Bot Conectado con Éxito!</b> Nombre: <b>${data.bot.first_name}</b> (@${data.bot.username})</div>`;
+                    if (data.bot.username) {
+                        document.getElementById('settingTelegramBotUser').value = data.bot.username;
+                    }
+                    if (data.group) {
+                        html += `<div><i class="fa-solid fa-users mr-1 text-sky-400"></i> Grupo detectado: <b>${data.group.title}</b> (${data.group.type}) - Permisos del bot: <b>${data.group.bot_status}</b></div>`;
+                    } else if (group) {
+                        html += `<div class="text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> No se pudo verificar el grupo. Asegúrate de que el bot sea Administrador en el grupo.</div>`;
+                    }
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'text-xs p-3 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300';
+                    resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1 text-rose-400"></i> <b>Error:</b> ${data.error || 'No se pudo conectar con el bot.'}`;
+                }
+            } catch (err) {
+                resultDiv.className = 'text-xs p-3 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300';
+                resultDiv.innerHTML = `<i class="fa-solid fa-circle-xmark mr-1 text-rose-400"></i> Error de red: ${err.message}`;
+            } finally {
+                btn.disabled = false;
             }
         }
 

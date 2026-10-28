@@ -91,6 +91,17 @@ function createDatabase(options = {}) {
       );
     `);
 
+    await query(`
+      CREATE TABLE IF NOT EXISTS verification_tokens (
+        code TEXT PRIMARY KEY,
+        telegram_user_id TEXT NOT NULL,
+        telegram_username TEXT,
+        expires_at DATETIME NOT NULL,
+        is_used INTEGER NOT NULL DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Sembrar API Key por defecto si no existe
     const keysCount = await query("SELECT COUNT(*) as count FROM api_keys");
     if (!keysCount.rows[0]?.count) {
@@ -104,7 +115,12 @@ function createDatabase(options = {}) {
       { key: 'reseller_api_enabled', value: 'true' },
       { key: 'reseller_limit_gb', value: 'true' },
       { key: 'default_account_duration_days', value: '2' },
-      { key: 'site_title', value: 'JOIF Cloud' }
+      { key: 'site_title', value: 'JOIF Cloud' },
+      { key: 'telegram_verification_enabled', value: 'false' },
+      { key: 'telegram_bot_token', value: '' },
+      { key: 'telegram_group_id', value: '' },
+      { key: 'telegram_group_link', value: '' },
+      { key: 'telegram_bot_username', value: '' }
     ];
 
     for (const item of defaultConfigs) {

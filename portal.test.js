@@ -69,12 +69,13 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     return originalFetch(url, options);
   };
 
-  const { app, antibot } = createApp({ database });
+  const { app, antibot, telegramService } = createApp({ database, autoStartTelegram: false });
   const serverHandle = await makeTestServer(app);
 
   t.after(async () => {
     global.fetch = originalFetch;
     if (antibot) antibot.close();
+    if (telegramService) telegramService.stopPolling();
     await serverHandle.close();
     await database.close();
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -364,5 +365,92 @@ test('Central Portal - Public API & Account Creation Flow', async (t) => {
     assert.equal(delRes.status, 200);
     const delData = await delRes.json();
     assert.equal(delData.success, true);
+  });
+
+  await t.test('8. Verificación por Bot de Telegram y Grupo Oficial', async () => {
+    // 1. GET /api/public/config retorna estado inicial
+    const cfgRes = await fetch(`${serverHandle.url}/api/public/config`);
+    assert.equal(cfgRes.status, 200);
+    const cfgData = await cfgRes.json();
+    assert.equal(cfgData.success, true);
+    assert.equal(cfgData.telegram_verification_enabled, false);
+
+    // 2. Activar verificación por Telegram desde Admin
+    const setRes = await fetch(`${serverHandle.url}/api/admin/settings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': 'Admin12345!'
+      },
+      body: JSON.stringify({
+        settings: {
+          telegram_verification_enabled: 'true',
+          telegram_bot_token: '123456:FAKE_TOKEN_FOR_TEST',
+          telegram_group_id: '@comunidad_prueba',
+          telegram_group_link: 'https://t.me/comunidad_prueba',
+          telegram_bot_username: 'PruebaVpnBot'
+        }
+      })
+    });
+    assert.equal(setRes.status, 200);
+
+    // 3. Crear cuenta pública sin código de telegram debe fallar con 400
+    const failRes = await fetch(`${serverHandle.url}/api/public/create-account`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Forwarded-For': '190.10.20.1'
+      },
+      body: JSON.stringify({
+        serverId: 'usa-01',
+        username: 'tguser01',
+        password: 'password123'
+      })
+    });
+    assert.equal(failRes.status, 400);
+    const failData = await failRes.json();
+    assert.match(failData.error, /código de verificación/);
+
+    // 4. Generar un token válido en la base de datos a través de telegramService
+    const code = await telegramService.generateCode('998877', 'tg_test_user');
+    assert.equal(typeof code, 'string');
+    assert.equal(code.length, 6);
+
+    // 5. Crear cuenta pública con el código de Telegram correcto
+    const okRes = await fetch(`${serverHandle.url}/api/public/create-account`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Forwarded-For': '190.10.20.1'
+      },
+      body: JSON.stringify({
+        serverId: 'usa-01',
+        username: 'tguser01',
+        password: 'password123',
+        telegramCode: code
+      })
+    });
+    assert.equal(okRes.status, 201);
+    const okData = await okRes.json();
+    assert.equal(okData.success, true);
+    assert.equal(okData.account.username, 'tguser01');
+
+    // 6. Intentar reutilizar el mismo código de Telegram debe ser rechazado (Zero-Replay)
+    const reuseRes = await fetch(`${serverHandle.url}/api/public/create-account`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Forwarded-For': '190.10.20.2'
+      },
+      body: JSON.stringify({
+        serverId: 'usa-01',
+        username: 'tguser02',
+        password: 'password123',
+        telegramCode: code
+      })
+    });
+    assert.equal(reuseRes.status, 400);
+    const reuseData = await reuseRes.json();
+    assert.match(reuseData.error, /inválido|utilizado|expirado/);
   });
 });

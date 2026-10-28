@@ -5,6 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { createDatabase } = require('./db');
 const { checkEdgeHealth, createEdgeAccount, deleteEdgeAccount } = require('./server-client');
+const { TelegramService } = require('./telegram-service');
 
 require('dotenv').config();
 
@@ -179,6 +180,10 @@ class AntibotChallengeCache {
 function createApp(options = {}) {
   const database = options.database || createDatabase(options);
   const antibot = options.antibot || new AntibotChallengeCache();
+  const telegramService = options.telegramService || new TelegramService({ database });
+  if (options.autoStartTelegram !== false) {
+    telegramService.init().catch((err) => console.warn('[TELEGRAM-BOT] Error al iniciar:', err.message));
+  }
   const app = express();
 
   app.disable('x-powered-by');
@@ -350,15 +355,37 @@ function createApp(options = {}) {
     }
   });
 
-  // 2. Generador de Captcha matemático con caché anti-replay
+  // 2. Configuración pública del portal (Telegram bot, título, enlaces)
+  app.get('/api/public/config', async (req, res) => {
+    try {
+      const rows = await database.query(`
+        SELECT key, value FROM admin_config 
+        WHERE key IN ('telegram_verification_enabled', 'telegram_bot_username', 'telegram_group_link', 'telegram_group_id', 'site_title')
+      `);
+      const map = {};
+      rows.rows.forEach(r => { map[r.key] = r.value; });
+      res.json({
+        success: true,
+        telegram_verification_enabled: map.telegram_verification_enabled === 'true',
+        telegram_bot_username: map.telegram_bot_username || '',
+        telegram_group_link: map.telegram_group_link || '',
+        telegram_group_id: map.telegram_group_id || '',
+        site_title: map.site_title || 'JOIF Cloud'
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 3. Generador de Captcha matemático con caché anti-replay (Modo fallback)
   app.get('/api/public/captcha', (req, res) => {
     const challenge = antibot.createChallenge(CAPTCHA_SECRET);
     res.json(challenge);
   });
 
-  // 3. Creación de cuenta pública (2 días de vigencia)
+  // 4. Creación de cuenta pública (2 días de vigencia)
   app.post('/api/public/create-account', async (req, res) => {
-    const { serverId, username, password, captchaAnswer, captchaToken, challengeId, expiresAt, signature } = req.body;
+    const { serverId, username, password, captchaAnswer, captchaToken, challengeId, expiresAt, signature, telegramCode } = req.body;
     const clientIp = getClientIp(req);
 
     // a. Verificar si la IP está bloqueada por exceso de intentos erróneos
@@ -366,20 +393,34 @@ function createApp(options = {}) {
       return res.status(429).json({ error: 'Demasiados intentos fallidos de verificación. Tu IP está temporalmente en espera (10 min).' });
     }
 
-    // b. Validar respuesta del captcha anti-bot
-    const sig = signature || captchaToken;
-    if (captchaAnswer === undefined || captchaAnswer === null || captchaAnswer === '' || !sig) {
-      return res.status(400).json({ error: 'Por favor responde la pregunta de verificación (anti-bot).' });
-    }
+    // b. Validar verificación según el modo activo (Telegram o Captcha matemático)
+    const tgEnabledRow = await database.query("SELECT value FROM admin_config WHERE key = 'telegram_verification_enabled'");
+    const isTelegramEnabled = tgEnabledRow.rows[0]?.value === 'true';
 
-    const verification = antibot.verify(challengeId, captchaAnswer, sig, expiresAt, CAPTCHA_SECRET);
-    if (!verification.valid) {
-      antibot.recordFailure(clientIp);
-      return res.status(400).json({ error: verification.reason || 'Respuesta de verificación incorrecta. Inténtalo de nuevo.' });
-    }
+    if (isTelegramEnabled) {
+      if (!telegramCode) {
+        return res.status(400).json({ error: 'Debes ingresar el código de verificación de 6 dígitos entregado por el Bot de Telegram.' });
+      }
+      const codeCheck = await telegramService.verifyAndConsumeCode(telegramCode);
+      if (!codeCheck.valid) {
+        antibot.recordFailure(clientIp);
+        return res.status(400).json({ error: codeCheck.reason });
+      }
+      antibot.clearFailures(clientIp);
+    } else {
+      const sig = signature || captchaToken;
+      if (captchaAnswer === undefined || captchaAnswer === null || captchaAnswer === '' || !sig) {
+        return res.status(400).json({ error: 'Por favor responde la pregunta de verificación (anti-bot).' });
+      }
 
-    // Limpiar contador de fallos de captcha al responder correctamente
-    antibot.clearFailures(clientIp);
+      const verification = antibot.verify(challengeId, captchaAnswer, sig, expiresAt, CAPTCHA_SECRET);
+      if (!verification.valid) {
+        antibot.recordFailure(clientIp);
+        return res.status(400).json({ error: verification.reason || 'Respuesta de verificación incorrecta. Inténtalo de nuevo.' });
+      }
+
+      antibot.clearFailures(clientIp);
+    }
 
     // b. Validar formato de usuario y contraseña
     if (!username || !/^[a-zA-Z0-9]{3,12}$/.test(username)) {
@@ -738,6 +779,8 @@ function createApp(options = {}) {
         `, [key, String(value)]);
       }
 
+      await telegramService.reloadConfig();
+
       res.json({ success: true, message: 'Configuraciones actualizadas exitosamente.' });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -760,6 +803,26 @@ function createApp(options = {}) {
       res.json({ success: true, message: 'Contraseña de administrador actualizada.' });
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Probar credenciales del Bot de Telegram y Grupo
+  app.post('/api/admin/telegram/test', requireAdmin, async (req, res) => {
+    try {
+      const { botToken, groupId } = req.body || {};
+      const result = await telegramService.testConnection({ botToken, groupId });
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+      if (result.bot?.username) {
+        await database.query(`
+          INSERT INTO admin_config (key, value) VALUES ('telegram_bot_username', ?)
+          ON CONFLICT(key) DO UPDATE SET value = excluded.value
+        `, [result.bot.username]);
+      }
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
     }
   });
 
@@ -1020,14 +1083,21 @@ function createApp(options = {}) {
     });
   });
 
-  return { app, database, antibot };
+    return { app, database, antibot, telegramService };
 }
 
 if (require.main === module) {
-  const { app } = createApp();
-  app.listen(PORT, '0.0.0.0', () => {
+  const { app, telegramService } = createApp();
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🌐 [PORTAL-HUB] Servidor Central activo en http://0.0.0.0:${PORT}`);
   });
+
+  const shutdown = () => {
+    if (telegramService) telegramService.stopPolling();
+    server.close(() => process.exit(0));
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
-module.exports = { createApp, AntibotChallengeCache };
+module.exports = { createApp, AntibotChallengeCache, TelegramService };
